@@ -19,7 +19,8 @@ import {
   Star, 
   ShieldCheck, 
   MessageSquare,
-  BadgeCheck
+  BadgeCheck,
+  Settings
 } from 'lucide-react';
 
 const DEFAULT_HERO = {
@@ -137,7 +138,7 @@ const DEFAULT_TRUST = {
 };
 
 export default function AdminCMS() {
-  const [subTab, setSubTab] = useState<'hero' | 'services' | 'testimonials' | 'trust'>('hero');
+  const [subTab, setSubTab] = useState<'hero' | 'services' | 'testimonials' | 'trust' | 'general'>('hero');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -148,6 +149,7 @@ export default function AdminCMS() {
   const [servicesData, setServicesData] = useState(DEFAULT_SERVICES);
   const [testimonialsData, setTestimonialsData] = useState(DEFAULT_TESTIMONIALS);
   const [trustData, setTrustData] = useState(DEFAULT_TRUST);
+  const [generalData, setGeneralData] = useState({ whatsappNumber: '5548999999999' });
 
   // Loading image state
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
@@ -166,6 +168,7 @@ export default function AdminCMS() {
         if (data.services) setServicesData(data.services);
         if (data.testimonials) setTestimonialsData(data.testimonials);
         if (data.trust) setTrustData({ ...DEFAULT_TRUST, ...data.trust });
+        if (data.general) setGeneralData({ ...generalData, ...data.general });
       }
     } catch (err: any) {
       console.error("Erro ao carregar dados do CMS:", err);
@@ -246,12 +249,13 @@ export default function AdminCMS() {
       )}
 
       {/* Sub-Navegação interna de abas CMS */}
-      <div className="flex border-b border-slate-200 bg-white rounded-t-xl p-2 gap-2 shadow-sm">
+      <div className="flex border-b border-slate-200 bg-white rounded-t-xl p-2 gap-2 shadow-sm flex-wrap">
         {[
           { id: 'hero', name: 'Seção Principal (Hero)', icon: Sparkles },
           { id: 'services', name: 'Serviços', icon: ShieldCheck },
           { id: 'testimonials', name: 'Depoimentos', icon: MessageSquare },
           { id: 'trust', name: 'Por que Nós? (Confiança)', icon: BadgeCheck },
+          { id: 'general', name: 'Configurações Gerais', icon: Settings },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -703,6 +707,48 @@ export default function AdminCMS() {
                   <Save className="w-4 h-4" />
                 )}
                 Salvar Seção Confiança
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ABA GERAL */}
+        {subTab === 'general' && (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 mb-1">Configurações Gerais do Site</h3>
+              <p className="text-xs text-slate-500">Configure detalhes de funcionamento e canais de contato direto do site.</p>
+            </div>
+
+            <div className="p-5 border border-slate-200 rounded-xl bg-slate-50/50 space-y-4">
+              <div className="max-w-md space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Número do WhatsApp (Destinatário)</label>
+                <input
+                  type="text"
+                  value={generalData.whatsappNumber}
+                  onChange={(e) => setGeneralData({ ...generalData, whatsappNumber: e.target.value.replace(/\D/g, '') })}
+                  className="w-full text-xs px-3 py-2 border border-slate-200 bg-white rounded-md focus:outline-none focus:border-brand-emerald font-bold"
+                  placeholder="Ex: 5548999999999"
+                />
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  Insira o número completo com código do país (Brasil: 55) + DDD (ex: 48) + Número, <strong>sem espaços, traços ou parênteses</strong>. 
+                  Este é o número que receberá os cliques do botão de orçamento e calculadora solar.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => handleSave('general', generalData)}
+                disabled={saving}
+                className="bg-brand-emerald hover:bg-emerald-600 disabled:bg-slate-300 text-white font-bold px-5 py-2.5 rounded-lg text-xs flex items-center gap-2 cursor-pointer shadow-sm transition-all"
+              >
+                {saving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Salvar Configurações
               </button>
             </div>
           </div>

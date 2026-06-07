@@ -6,6 +6,7 @@ import { Zap, ArrowRight, Sun, TrendingUp, Leaf, Clock, CheckCircle2, RotateCcw,
 import { createLeadAction } from '@/app/actions/leads';
 import { env } from '@/config/env';
 import { calcularSolar as calcular, ufFromCep, CalcResult } from '@/config/solar';
+import { getSiteSettingsAction } from '@/app/actions/settings';
 
 function fmt(n: number) {
   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -71,9 +72,20 @@ export default function SolarCalculatorPortal() {
     setActiveTab('resumo');
   };
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     if (!result) return;
-    const numero = env.whatsappNumber;
+    let numero = env.whatsappNumber;
+    try {
+      const settingsRes = await getSiteSettingsAction('general');
+      if (settingsRes.success && settingsRes.data) {
+        const generalData = settingsRes.data as any;
+        if (generalData.whatsappNumber) {
+          numero = generalData.whatsappNumber;
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao buscar whatsapp do CMS na calculadora:', err);
+    }
     const msg = `Olá! Fiz uma simulação na Hubly Pro e meu potencial de economia solar é de *${fmt(result.economiaA)}/ano* com um sistema de *${result.potencia} kWp*. Quero saber mais!`;
     window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
   };

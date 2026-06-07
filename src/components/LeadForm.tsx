@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { createLeadAction } from '@/app/actions/leads';
 import { env } from '@/config/env';
 import { servicesConfig } from '@/config/services';
+import { getSiteSettingsAction } from '@/app/actions/settings';
 import { motion } from 'framer-motion';
 import { Send, CheckCircle2 } from 'lucide-react';
 
@@ -41,9 +42,20 @@ export default function LeadForm() {
 
       setSubmitted(true);
       
-      const numeroDestino = env.whatsappNumber;
+      let numeroDestino = env.whatsappNumber;
+      try {
+        const settingsRes = await getSiteSettingsAction('general');
+        if (settingsRes.success && settingsRes.data) {
+          const generalData = settingsRes.data as any;
+          if (generalData.whatsappNumber) {
+            numeroDestino = generalData.whatsappNumber;
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao buscar whatsapp do CMS, usando default:', err);
+      }
+
       const mensagem = `Olá! Meu nome é ${formData.nome}. Gostaria de solicitar uma análise técnica gratuita para ${formData.servico} em ${formData.localizacao}.`;
-      
       const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensagem)}`;
       setTimeout(() => window.open(url, '_blank'), 1500);
       
