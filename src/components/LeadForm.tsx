@@ -18,6 +18,7 @@ export default function LeadForm({ defaultService }: LeadFormProps) {
   const [formData, setFormData] = useState({
     nome: '',
     whatsapp: '',
+    email: '',
     localizacao: '',
     servico: defaultService || servicesConfig[0].title,
   });
@@ -34,6 +35,7 @@ export default function LeadForm({ defaultService }: LeadFormProps) {
       const res = await createLeadAction({
         nome: formData.nome,
         whatsapp: formData.whatsapp,
+        email: formData.email,
         localizacao: formData.localizacao,
         servico: formData.servico,
         status: 'Pendente',
@@ -138,6 +140,19 @@ export default function LeadForm({ defaultService }: LeadFormProps) {
                 onChange={handleChange}
                 className="w-full p-4 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-brand-emerald focus:ring-4 focus:ring-brand-emerald/10 transition-all shadow-inner"
                 placeholder="(48) 99999-9999"
+              />
+            </div>
+
+            <div className="group">
+              <label className="block text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-slate-500 uppercase mb-2 ml-1 transition-colors group-focus-within:text-brand-emerald">E-mail</label>
+              <input 
+                required
+                type="email" 
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full p-4 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-brand-emerald focus:ring-4 focus:ring-brand-emerald/10 transition-all shadow-inner"
+                placeholder="Ex: cliente@email.com"
               />
             </div>
 
