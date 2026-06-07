@@ -63,6 +63,9 @@ export default function SolarCalculatorPortal() {
         cep:            formData.cep,
         concessionaria: formData.concessionaria,
         valor_conta:    valorNum,
+        valor_proposta: calc.custoProjeto,
+        temperatura:    'Morno',
+        origem:         'Calculadora Solar'
       });
     } catch {
       // Silent fail - calculation still shows

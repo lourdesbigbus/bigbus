@@ -15,4 +15,9 @@ export interface Lead {
   cep?: string;
   concessionaria?: string;
   valor_conta?: number;
+  valor_proposta?: number;
+  temperatura?: 'Frio' | 'Morno' | 'Quente';
+  motivo_perda?: string;
+  data_proximo_contato?: string;
+  origem?: string;
 }

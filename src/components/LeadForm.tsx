@@ -33,7 +33,10 @@ export default function LeadForm() {
         localizacao: formData.localizacao,
         servico: formData.servico,
         status: 'Pendente',
-        perda_estimada: 0 
+        perda_estimada: 0,
+        valor_proposta: 0,
+        temperatura: 'Morno',
+        origem: 'Formulário Geral'
       });
 
       if (!res.success) {

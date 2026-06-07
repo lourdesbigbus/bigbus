@@ -32,6 +32,8 @@ function DashboardContent() {
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
+  const [tempFilter, setTempFilter] = useState('Todos');
+  const [origemFilter, setOrigemFilter] = useState('Todos');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   useEffect(() => {
@@ -91,7 +93,7 @@ function DashboardContent() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Data', 'Nome', 'WhatsApp', 'Localização', 'Serviço', 'Status', 'Perda Estimada', 'Valor Fechado', 'Observações'];
+    const headers = ['Data', 'Nome', 'WhatsApp', 'Localização', 'Serviço', 'Status', 'Origem', 'Temperatura', 'Economia/Perda Estimada', 'Valor Proposta (Orçamento)', 'Valor Fechado', 'Data Próximo Contato', 'Motivo da Perda', 'Observações'];
     const csvContent = [
       headers.join(','),
       ...filteredLeads.map(l => 
@@ -102,8 +104,13 @@ function DashboardContent() {
           `"${l.localizacao}"`,
           `"${l.servico}"`,
           `"${l.status}"`,
+          `"${l.origem || 'Landing Page'}"`,
+          `"${l.temperatura || 'Morno'}"`,
           l.perda_estimada || 0,
+          l.valor_proposta || 0,
           l.valor_fechado || 0,
+          l.data_proximo_contato || '',
+          `"${l.motivo_perda || ''}"`,
           `"${l.observacoes || ''}"`
         ].join(',')
       )
@@ -122,12 +129,14 @@ function DashboardContent() {
                           l.whatsapp.includes(searchTerm) ||
                           l.servico.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'Todos' || l.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesTemp = tempFilter === 'Todos' || (l.temperatura || 'Morno') === tempFilter;
+    const matchesOrigem = origemFilter === 'Todos' || (l.origem || 'Landing Page') === origemFilter;
+    return matchesSearch && matchesStatus && matchesTemp && matchesOrigem;
   });
 
   // Cálculos KPI gerais
   const activeLeads = leads.filter(l => l.status !== 'Perdido');
-  const totalValue = activeLeads.reduce((acc, l) => acc + (l.perda_estimada || 0), 0);
+  const totalValue = activeLeads.reduce((acc, l) => acc + (l.valor_proposta || l.perda_estimada || 0), 0);
   const pendingLeads = activeLeads.filter(l => l.status === 'Pendente').length;
   const closedValue = leads.reduce((acc, l) => acc + (l.valor_fechado || 0), 0);
 
@@ -173,6 +182,12 @@ function DashboardContent() {
   // Maior valor no funil para normalização de largura das barras
   const maxFunnelCount = Math.max(...funnelStages.map(s => s.count), 1);
 
+  // Próximos contatos agendados
+  const upcomingFollowups = leads
+    .filter(l => l.data_proximo_contato && l.status !== 'Concluído' && l.status !== 'Pago' && l.status !== 'Perdido')
+    .sort((a, b) => new Date(a.data_proximo_contato!).getTime() - new Date(b.data_proximo_contato!).getTime())
+    .slice(0, 5);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Pendente': return 'bg-orange-50 text-orange-600 border-orange-200';
@@ -181,6 +196,15 @@ function DashboardContent() {
       case 'Pago': return 'bg-purple-50 text-purple-600 border-purple-200';
       case 'Perdido': return 'bg-red-50 text-red-600 border-red-200';
       default: return 'bg-slate-50 text-slate-600 border-slate-200';
+    }
+  };
+
+  const getTempColor = (temp?: string) => {
+    switch (temp) {
+      case 'Quente': return 'bg-red-50 text-red-600 border-red-200';
+      case 'Frio': return 'bg-sky-50 text-sky-600 border-sky-200';
+      case 'Morno':
+      default: return 'bg-amber-50 text-amber-600 border-amber-200';
     }
   };
 
@@ -337,25 +361,61 @@ function DashboardContent() {
             </div>
           </div>
 
-          {/* Performance Financeira */}
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Faturamento e Pipeline Financeiro</h2>
-              <p className="text-[11px] text-slate-500">Valores potenciais em negociação versus vendas efetivamente concluídas.</p>
+          {/* Performance & Agenda Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Bloco Financeiro (Ocupa 2 colunas) */}
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">Faturamento e Pipeline Financeiro</h2>
+                <p className="text-[11px] text-slate-500">Valores potenciais em negociação (Propostas) versus contratos assinados.</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Pipeline Ativo</span>
+                  <span className="text-lg font-black text-blue-600">R$ {totalValue.toLocaleString('pt-BR')}</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Faturamento Real</span>
+                  <span className="text-lg font-black text-brand-emerald">R$ {closedValue.toLocaleString('pt-BR')}</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Ticket Médio</span>
+                  <span className="text-lg font-black text-purple-600">R$ {averageTicket.toLocaleString('pt-BR')}</span>
+                </div>
+              </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Pipeline Estimado (Ativo)</span>
-                <span className="text-xl font-bold text-blue-600">R$ {totalValue.toLocaleString('pt-BR')}</span>
-              </div>
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Faturamento Real (Ganho)</span>
-                <span className="text-xl font-bold text-brand-emerald">R$ {closedValue.toLocaleString('pt-BR')}</span>
-              </div>
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Ticket Médio</span>
-                <span className="text-xl font-bold text-purple-600">R$ {averageTicket.toLocaleString('pt-BR')}</span>
+
+            {/* Agenda de Contatos (Ocupa 1 coluna) */}
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Agenda de Follow-up</h2>
+                  <p className="text-[11px] text-slate-500">Retornos agendados com os clientes.</p>
+                </div>
+
+                {upcomingFollowups.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic text-center py-6">Nenhum agendamento ativo.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {upcomingFollowups.map(l => (
+                      <div key={l.id} className="flex justify-between items-center text-xs border-b border-slate-100 pb-2 last:border-0 last:pb-0">
+                        <div className="space-y-0.5 cursor-pointer hover:text-brand-emerald" onClick={() => setSelectedLead(l)}>
+                          <p className="font-bold text-slate-800">{l.nome}</p>
+                          <p className="text-[10px] text-slate-400 font-semibold uppercase">{l.servico}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] font-bold text-slate-500 block">
+                            {new Date(l.data_proximo_contato + 'T00:00:00').toLocaleDateString('pt-BR')}
+                          </span>
+                          <span className={`inline-block text-[8px] font-bold px-1.5 py-0.5 rounded mt-1 border ${getTempColor(l.temperatura)}`}>
+                            {l.temperatura || 'Morno'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -381,7 +441,7 @@ function DashboardContent() {
         <>
           {/* Barra de Filtros */}
           <div className="bg-white p-4 rounded-md border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
-            <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
               <div className="relative w-full md:w-64">
                 <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                 <input 
@@ -392,10 +452,11 @@ function DashboardContent() {
                   className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald"
                 />
               </div>
+              
               <select 
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="py-2 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white"
+                className="py-2 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-medium text-slate-600"
               >
                 <option value="Todos">Todos os Status</option>
                 <option value="Pendente">Pendente</option>
@@ -403,6 +464,28 @@ function DashboardContent() {
                 <option value="Concluído">Concluído</option>
                 <option value="Pago">Pago</option>
                 <option value="Perdido">Perdido</option>
+              </select>
+
+              <select 
+                value={tempFilter}
+                onChange={(e) => setTempFilter(e.target.value)}
+                className="py-2 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-medium text-slate-600"
+              >
+                <option value="Todos">Todas as Prioridades</option>
+                <option value="Quente">🔥 Quente</option>
+                <option value="Morno">⚡ Morno</option>
+                <option value="Frio">❄️ Frio</option>
+              </select>
+
+              <select 
+                value={origemFilter}
+                onChange={(e) => setOrigemFilter(e.target.value)}
+                className="py-2 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-medium text-slate-600"
+              >
+                <option value="Todos">Todas as Origens</option>
+                <option value="Formulário Geral">Formulário Geral</option>
+                <option value="Calculadora Solar">Calculadora Solar</option>
+                <option value="Landing Page">Landing Page (Antigo)</option>
               </select>
             </div>
             <div className="text-xs text-slate-500 font-medium">
@@ -436,8 +519,10 @@ function DashboardContent() {
                       <th className="px-6 py-4 font-bold">Entrada (SLA)</th>
                       <th className="px-6 py-4 font-bold">Cliente</th>
                       <th className="px-6 py-4 font-bold">Serviço</th>
+                      <th className="px-6 py-4 font-bold">Prioridade</th>
                       <th className="px-6 py-4 font-bold">Status</th>
-                      <th className="px-6 py-4 font-bold text-right">Potencial</th>
+                      <th className="px-6 py-4 font-bold text-right">Orçamento</th>
+                      <th className="px-6 py-4 font-bold text-right">Fechado</th>
                       <th className="px-6 py-4 font-bold text-center">Ações</th>
                     </tr>
                   </thead>
@@ -452,13 +537,23 @@ function DashboardContent() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="font-bold text-slate-900 cursor-pointer hover:text-brand-emerald flex items-center gap-2" onClick={() => setSelectedLead(lead)}>
-                            {lead.nome} <Edit3 className="w-3 h-3 text-slate-400" />
+                            {lead.nome} <Edit3 className="w-3 h-3 text-slate-400 animate-pulse" />
                           </div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">{lead.whatsapp}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] text-slate-400 font-mono">{lead.whatsapp}</span>
+                            <span className="text-[8px] bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-bold uppercase tracking-tight">
+                              {lead.origem === 'Calculadora Solar' ? 'Calculadora' : lead.origem === 'Formulário Geral' ? 'Formulário' : 'Site'}
+                            </span>
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight">
                             {lead.servico}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1.5 text-[9px] font-bold rounded-md border ${getTempColor(lead.temperatura)}`}>
+                            {lead.temperatura === 'Quente' ? '🔥 Quente' : lead.temperatura === 'Frio' ? '❄️ Frio' : '⚡ Morno'}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -475,7 +570,10 @@ function DashboardContent() {
                           </select>
                         </td>
                         <td className="px-6 py-4 font-mono font-bold text-slate-700 text-right">
-                          R$ {lead.perda_estimada || 0}
+                          R$ {(lead.valor_proposta || lead.perda_estimada || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-6 py-4 font-mono font-bold text-emerald-600 text-right">
+                          {lead.valor_fechado ? `R$ ${lead.valor_fechado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-center gap-2">
@@ -509,17 +607,39 @@ function DashboardContent() {
                   </div>
                   <div className="space-y-3">
                     {filteredLeads.filter(l => l.status === colStatus).map(lead => (
-                      <div key={lead.id} className="bg-white p-3 rounded-md shadow-sm border border-slate-200 hover:border-brand-emerald cursor-pointer transition-all" onClick={() => setSelectedLead(lead)}>
+                      <div key={lead.id} className="bg-white p-3 rounded-md shadow-sm border border-slate-200 hover:border-brand-emerald cursor-pointer transition-all hover:scale-[1.01]" onClick={() => setSelectedLead(lead)}>
                         <div className="flex justify-between items-start mb-2">
-                          <div className="font-bold text-xs text-slate-900">{lead.nome}</div>
+                          <div className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                            {lead.nome}
+                            <span className={`inline-block w-2 h-2 rounded-full ${lead.temperatura === 'Quente' ? 'bg-red-500 animate-pulse' : lead.temperatura === 'Frio' ? 'bg-sky-500' : 'bg-amber-500'}`} title={`Prioridade: ${lead.temperatura || 'Morno'}`}></span>
+                          </div>
                           <span className="text-[9px] text-slate-400">{timeAgo(lead.created_at)}</span>
                         </div>
-                        <div className="text-[10px] text-slate-500 mb-2">{lead.servico}</div>
-                        <div className="flex justify-between items-center">
-                          <div className="font-mono text-xs font-bold text-brand-emerald">R$ {lead.perda_estimada}</div>
-                          <a href={`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-600" onClick={(e) => e.stopPropagation()}>
-                            <MessageCircle className="w-4 h-4" />
-                          </a>
+                        <div className="flex justify-between items-center text-[10px] text-slate-500 mb-2">
+                          <span className="font-medium truncate max-w-[65%]">{lead.servico}</span>
+                          <span className="bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-bold uppercase tracking-tight text-[8px]">
+                            {lead.origem === 'Calculadora Solar' ? 'Calculadora' : lead.origem === 'Formulário Geral' ? 'Formulário' : 'Site'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center border-t border-slate-100 pt-2 mt-2">
+                          <div className="text-left">
+                            <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Orçamento</p>
+                            <p className="font-mono text-[10px] font-bold text-slate-600">
+                              R$ {(lead.valor_proposta || lead.perda_estimada || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                            </p>
+                          </div>
+                          {lead.valor_fechado ? (
+                            <div className="text-right">
+                              <p className="text-[8px] text-emerald-500 font-bold uppercase tracking-wider">Fechado</p>
+                              <p className="font-mono text-[10px] font-bold text-emerald-600">
+                                R$ {lead.valor_fechado.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                              </p>
+                            </div>
+                          ) : (
+                            <a href={`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-full transition-all" onClick={(e) => e.stopPropagation()}>
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -543,7 +663,7 @@ function DashboardContent() {
                     {selectedLead.status}
                   </span>
                 </h2>
-                <p className="text-xs text-slate-500 mt-1">SLA: {timeAgo(selectedLead.created_at)} • Origem: Landing Page</p>
+                <p className="text-xs text-slate-500 mt-1">SLA: {timeAgo(selectedLead.created_at)} • Origem: {selectedLead.origem || 'Landing Page'}</p>
               </div>
               <button onClick={() => setSelectedLead(null)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-md">
                 <X className="w-5 h-5" />
@@ -574,41 +694,104 @@ function DashboardContent() {
                     ) : null}
                   </div>
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Potencial Financeiro</label>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <p className="text-xs text-slate-500">Estimativa do Sistema</p>
-                      <p className="text-lg font-bold text-slate-900">R$ {selectedLead.perda_estimada || 0}</p>
+
+                {/* Valores Financeiros */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block border-b border-slate-200 pb-1.5">Negociação Comercial</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-500 uppercase">Valor Proposta</p>
+                      <div className="relative mt-1">
+                        <span className="absolute left-2.5 top-1.5 text-xs text-slate-400 font-bold">R$</span>
+                        <input 
+                          type="number" 
+                          value={selectedLead.valor_proposta || ''}
+                          onChange={(e) => setSelectedLead({...selectedLead, valor_proposta: Number(e.target.value)})}
+                          className="w-full pl-8 pr-2 py-1 text-xs border border-slate-200 rounded focus:outline-none focus:border-brand-emerald font-bold"
+                          placeholder="0.00"
+                        />
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-brand-emerald font-bold">Valor Fechado (Real)</p>
-                      <div className="relative">
-                        <span className="absolute left-2 top-1.5 text-xs text-slate-400">R$</span>
+                    <div>
+                      <p className="text-[9px] font-bold text-emerald-600 uppercase">Valor Fechado</p>
+                      <div className="relative mt-1">
+                        <span className="absolute left-2.5 top-1.5 text-xs text-emerald-500 font-bold">R$</span>
                         <input 
                           type="number" 
                           value={selectedLead.valor_fechado || ''}
                           onChange={(e) => setSelectedLead({...selectedLead, valor_fechado: Number(e.target.value)})}
-                          className="w-full pl-7 pr-2 py-1 text-sm border border-brand-emerald/30 rounded focus:outline-none focus:border-brand-emerald font-bold"
+                          className="w-full pl-8 pr-2 py-1 text-xs border border-emerald-200 rounded focus:outline-none focus:border-emerald-500 font-bold bg-emerald-50/50"
                           placeholder="0.00"
                         />
                       </div>
                     </div>
                   </div>
+                  {selectedLead.perda_estimada && selectedLead.perda_estimada > 0 ? (
+                    <p className="text-[9px] text-slate-400 font-semibold italic mt-1">
+                      Estimativa da calculadora: R$ {selectedLead.perda_estimada.toLocaleString('pt-BR')}
+                    </p>
+                  ) : null}
                 </div>
-                <div>
-                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Alterar Status</label>
-                   <select 
-                      value={selectedLead.status}
-                      onChange={(e) => handleStatusChange(selectedLead.id, e.target.value)}
-                      className="w-full py-2 px-3 text-sm border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-medium"
+
+                {/* Prioridade & Agendamento */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Prioridade</label>
+                    <select 
+                      value={selectedLead.temperatura || 'Morno'}
+                      onChange={(e) => setSelectedLead({...selectedLead, temperatura: e.target.value as any})}
+                      className="w-full py-2 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-semibold"
                     >
-                      <option value="Pendente">Pendente</option>
-                      <option value="Em Atendimento">Em Atendimento</option>
-                      <option value="Concluído">Concluído</option>
-                      <option value="Pago">Pago</option>
-                      <option value="Perdido">Perdido</option>
+                      <option value="Frio">❄️ Frio</option>
+                      <option value="Morno">⚡ Morno</option>
+                      <option value="Quente">🔥 Quente</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Próximo Contato</label>
+                    <input 
+                      type="date" 
+                      value={selectedLead.data_proximo_contato || ''}
+                      onChange={(e) => setSelectedLead({...selectedLead, data_proximo_contato: e.target.value})}
+                      className="w-full py-1.5 px-2 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald font-semibold"
+                    />
+                  </div>
+                </div>
+
+                {/* Status & Motivo de Perda */}
+                <div className="space-y-3">
+                  <div>
+                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Alterar Status</label>
+                     <select 
+                        value={selectedLead.status}
+                        onChange={(e) => handleStatusChange(selectedLead.id, e.target.value)}
+                        className="w-full py-2 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-bold"
+                      >
+                        <option value="Pendente">Pendente</option>
+                        <option value="Em Atendimento">Em Atendimento</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Pago">Pago</option>
+                        <option value="Perdido">Perdido</option>
+                      </select>
+                  </div>
+
+                  {selectedLead.status === 'Perdido' && (
+                    <div className="animate-in slide-in-from-top-1 duration-200">
+                       <label className="text-[10px] font-bold text-red-500 uppercase tracking-widest block mb-1">Motivo da Perda</label>
+                       <select 
+                          value={selectedLead.motivo_perda || ''}
+                          onChange={(e) => setSelectedLead({...selectedLead, motivo_perda: e.target.value})}
+                          className="w-full py-2 px-3 text-xs border border-red-200 rounded-md focus:outline-none focus:border-red-500 bg-white font-semibold text-slate-700"
+                        >
+                          <option value="">Selecione um motivo...</option>
+                          <option value="Preço alto / Sem orçamento">Preço alto / Sem orçamento</option>
+                          <option value="Fechou com concorrente">Fechou com concorrente</option>
+                          <option value="Desistiu do projeto">Desistiu do projeto</option>
+                          <option value="Sem retorno / Não responde">Sem retorno / Não responde</option>
+                          <option value="Outro (Detalhar nas observações)">Outro (Detalhar nas observações)</option>
+                        </select>
+                    </div>
+                  )}
                 </div>
               </div>
               

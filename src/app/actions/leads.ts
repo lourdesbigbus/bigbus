@@ -122,6 +122,10 @@ export async function updateLeadDetailsAction(lead: Lead) {
       .update({
         observacoes: lead.observacoes,
         valor_fechado: lead.valor_fechado,
+        valor_proposta: lead.valor_proposta,
+        temperatura: lead.temperatura,
+        motivo_perda: lead.motivo_perda,
+        data_proximo_contato: lead.data_proximo_contato,
         status: lead.status
       })
       .eq('id', lead.id)

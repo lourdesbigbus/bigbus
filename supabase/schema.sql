@@ -15,7 +15,12 @@ CREATE TABLE IF NOT EXISTS public.leads (
     email VARCHAR(255),
     cep VARCHAR(20),
     concessionaria VARCHAR(100),
-    valor_conta NUMERIC(12, 2)
+    valor_conta NUMERIC(12, 2),
+    valor_proposta NUMERIC(12, 2) DEFAULT 0.00,
+    temperatura VARCHAR(20) DEFAULT 'Morno' CHECK (temperatura IN ('Frio', 'Morno', 'Quente')),
+    motivo_perda VARCHAR(255),
+    data_proximo_contato DATE,
+    origem VARCHAR(100) DEFAULT 'Landing Page'
 );
 
 -- Comentários da tabela para documentação no Supabase
