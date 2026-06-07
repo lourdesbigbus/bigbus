@@ -25,6 +25,13 @@ export default function Hero({ data }: HeroProps) {
   const cta_text = data?.cta_text || "Solicitar Orçamento Grátis";
   const trust_subtitle = data?.trust_subtitle || "Clientes satisfeitos em SC";
 
+  const handleScrollToForm = () => {
+    const element = document.getElementById('lead-form');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="relative w-full flex flex-col items-center lg:items-start text-center lg:text-left">
       <motion.div
@@ -48,7 +55,10 @@ export default function Hero({ data }: HeroProps) {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-6 mb-12">
-          <button className="group relative w-full sm:w-auto bg-brand-orange text-white font-black py-5 px-12 rounded-2xl shadow-2xl shadow-orange-500/40 transition-all hover:scale-105 active:scale-95 text-base md:text-lg uppercase tracking-widest flex items-center justify-center gap-3 overflow-hidden">
+          <button 
+            onClick={handleScrollToForm}
+            className="group relative w-full sm:w-auto bg-brand-orange text-white font-black py-5 px-12 rounded-2xl shadow-2xl shadow-orange-500/40 transition-all hover:scale-105 active:scale-95 text-base md:text-lg uppercase tracking-widest flex items-center justify-center gap-3 overflow-hidden"
+          >
              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shine" />
              {cta_text}
              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
