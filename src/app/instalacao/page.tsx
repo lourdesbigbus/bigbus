@@ -1,14 +1,34 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShieldCheck, Wrench, BadgeCheck } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, BadgeCheck } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import TrustSection from '@/components/TrustSection';
 import Testimonials from '@/components/Testimonials';
 import LeadForm from '@/components/LeadForm';
 import Footer from '@/components/Footer';
 import SolarCalculatorPortal from '@/components/SolarCalculatorPortal';
+import { getAllSiteSettingsAction } from '@/app/actions/settings';
 
-export default function InstalacaoPage() {
+export default async function InstalacaoPage() {
+  const settingsRes = await getAllSiteSettingsAction();
+  const settings = settingsRes.success ? settingsRes.data : null;
+  
+  // Encontrar a configuração específica para este serviço
+  const service = (settings?.services || []).find((s: any) => s.id === 'instalacao_manutencao') || {
+    title: 'Instalação e Manutenção',
+    description: 'Projetos de energia solar de alta performance, desde a homologação até o monitoramento ativo.',
+    subpage_image: '/images/instalacao.png',
+    differentials_title: 'O que garantimos:',
+    differentials: [
+      "Projetos assinados por Engenheiros Homologados",
+      "Uso de materiais de primeira linha (Tier 1)",
+      "Pós-venda e monitoramento ativo pela Hubly Pro",
+      "Instalação rápida e com limpeza total"
+    ]
+  };
+
+  const testimonialsData = settings?.testimonials || [];
+
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center relative overflow-hidden">
       {/* Background Decor */}
@@ -32,7 +52,7 @@ export default function InstalacaoPage() {
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 -z-20">
           <img 
-            src="/images/instalacao.png" 
+            src={service.subpage_image || service.image || "/images/instalacao.png"} 
             alt="Fundo Instalação" 
             className="w-full h-full object-cover opacity-20 dark:opacity-10 grayscale"
           />
@@ -54,12 +74,12 @@ export default function InstalacaoPage() {
         <SolarCalculatorPortal />
       </section>
 
-      <TrustSection />
+      <TrustSection data={settings?.trust} />
       
       <div className="py-12 w-full bg-white/50 dark:bg-slate-900/50 border-y border-slate-200 dark:border-slate-800">
         <div className="max-w-4xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white dark:border-slate-700">
-             <img src="/images/instalacao.png" alt="Instalação" className="w-full h-full object-cover" />
+             <img src={service.subpage_image || service.image || "/images/instalacao.png"} alt={service.title} className="w-full h-full object-cover" />
              <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/60 to-transparent" />
              <div className="absolute bottom-6 left-6 text-white">
                 <BadgeCheck className="w-8 h-8 text-brand-emerald mb-2" />
@@ -67,14 +87,11 @@ export default function InstalacaoPage() {
              </div>
           </div>
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-brand-navy dark:text-white uppercase tracking-tight">O que garantimos:</h3>
+            <h3 className="text-2xl font-bold text-brand-navy dark:text-white uppercase tracking-tight font-montserrat">
+              {service.differentials_title || 'O que garantimos:'}
+            </h3>
             <ul className="space-y-3">
-              {[
-                "Projetos assinados por Engenheiros Homologados",
-                "Uso de materiais de primeira linha (Tier 1)",
-                "Pós-venda e monitoramento ativo pela Hubly Pro",
-                "Instalação rápida e com limpeza total"
-              ].map((item, i) => (
+              {(service.differentials || []).map((item: string, i: number) => (
                 <li key={i} className="flex items-center gap-3 text-slate-600 dark:text-slate-400 text-sm md:text-base">
                   <div className="w-5 h-5 rounded-full bg-brand-emerald/20 flex items-center justify-center flex-shrink-0">
                     <div className="w-2 h-2 rounded-full bg-brand-emerald" />
@@ -87,7 +104,7 @@ export default function InstalacaoPage() {
         </div>
       </div>
 
-      <Testimonials serviceId="instalacao_manutencao" />
+      <Testimonials serviceId="instalacao_manutencao" data={testimonialsData} />
       <LeadForm defaultService="Instalação e Manutenção" />
       <Footer />
     </main>

@@ -6,8 +6,20 @@ import TrustSection from '@/components/TrustSection';
 import Testimonials from '@/components/Testimonials';
 import LeadForm from '@/components/LeadForm';
 import Footer from '@/components/Footer';
+import { getAllSiteSettingsAction } from '@/app/actions/settings';
 
-export default function CalculadoraPage() {
+export default async function CalculadoraPage() {
+  const settingsRes = await getAllSiteSettingsAction();
+  const settings = settingsRes.success ? settingsRes.data : null;
+  
+  // Encontrar a configuração específica para este serviço
+  const service = (settings?.services || []).find((s: any) => s.id === 'limpeza_solar') || {
+    title: 'Calcule sua Economia',
+    description: 'Descubra quanto você está deixando de ganhar por causa da sujeira nos seus painéis solares.'
+  };
+
+  const testimonialsData = settings?.testimonials || [];
+
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center relative overflow-hidden">
       {/* Background Decor */}
@@ -39,10 +51,10 @@ export default function CalculadoraPage() {
              <ShieldCheck className="w-4 h-4" /> Serviço Homologado Hubly Pro
            </div>
            <h1 className="text-3xl md:text-5xl font-montserrat font-black text-brand-navy dark:text-slate-100 uppercase tracking-tight">
-             Calcule sua <span className="text-brand-emerald">Economia</span>
+             {service.title}
            </h1>
-           <p className="text-slate-500 dark:text-slate-400 mt-4 max-w-md mx-auto">
-             Descubra quanto você está deixando de ganhar por causa da sujeira nos seus painéis solares.
+           <p className="text-slate-500 dark:text-slate-400 mt-4 max-w-md mx-auto font-medium">
+             {service.description}
            </p>
         </div>
 
@@ -53,8 +65,8 @@ export default function CalculadoraPage() {
         </div>
       </section>
 
-      <TrustSection />
-      <Testimonials serviceId="limpeza_solar" />
+      <TrustSection data={settings?.trust} />
+      <Testimonials serviceId="limpeza_solar" data={testimonialsData} />
       <LeadForm defaultService="Limpeza Técnica de Placas" />
       <Footer />
     </main>

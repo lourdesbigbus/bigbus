@@ -1,13 +1,33 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShieldCheck, ThermometerSun, BadgeCheck } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, ThermometerSun } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import TrustSection from '@/components/TrustSection';
 import Testimonials from '@/components/Testimonials';
 import LeadForm from '@/components/LeadForm';
 import Footer from '@/components/Footer';
+import { getAllSiteSettingsAction } from '@/app/actions/settings';
 
-export default function AquecimentoPage() {
+export default async function AquecimentoPage() {
+  const settingsRes = await getAllSiteSettingsAction();
+  const settings = settingsRes.success ? settingsRes.data : null;
+  
+  // Encontrar a configuração específica para este serviço
+  const service = (settings?.services || []).find((s: any) => s.id === 'aquecimento_piso') || {
+    title: 'Aquecimento de Piso Premium',
+    description: 'O máximo conforto térmico para sua casa com tecnologia de ponta e instalação auditada pela Hubly Pro.',
+    subpage_image: '/images/aquecimento.png',
+    differentials_title: 'Diferenciais do Hub:',
+    differentials: [
+      "Sistemas de alta eficiência e baixo consumo",
+      "Instalação especializada sem sujeira",
+      "Controle total via smartphone",
+      "Garantia estendida via Hubly Pro"
+    ]
+  };
+
+  const testimonialsData = settings?.testimonials || [];
+
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center relative overflow-hidden">
       {/* Background Decor */}
@@ -40,20 +60,20 @@ export default function AquecimentoPage() {
              <ShieldCheck className="w-4 h-4" /> Serviço Homologado Hubly Pro
            </div>
            <h1 className="text-4xl md:text-6xl font-montserrat font-black text-brand-navy dark:text-slate-100 uppercase tracking-tight leading-[1.1]">
-             Aquecimento de <span className="text-brand-emerald">Piso Premium</span>
+             {service.title}
            </h1>
            <p className="text-slate-500 dark:text-slate-400 mt-6 text-lg max-w-2xl mx-auto">
-             O máximo conforto térmico para sua casa com tecnologia de ponta e instalação auditada pela Hubly Pro.
+             {service.description}
            </p>
         </div>
       </section>
 
-      <TrustSection />
+      <TrustSection data={settings?.trust} />
       
       <div className="py-12 w-full bg-white/50 dark:bg-slate-900/50 border-y border-slate-200 dark:border-slate-800">
         <div className="max-w-4xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white dark:border-slate-700">
-             <img src="/images/aquecimento.png" alt="Aquecimento de Piso" className="w-full h-full object-cover" />
+             <img src={service.subpage_image || service.image || "/images/aquecimento.png"} alt={service.title} className="w-full h-full object-cover" />
              <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/60 to-transparent" />
              <div className="absolute bottom-6 left-6 text-white">
                 <ThermometerSun className="w-8 h-8 text-brand-emerald mb-2" />
@@ -61,14 +81,11 @@ export default function AquecimentoPage() {
              </div>
           </div>
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-brand-navy dark:text-white uppercase tracking-tight">Diferenciais do Hub:</h3>
+            <h3 className="text-2xl font-bold text-brand-navy dark:text-white uppercase tracking-tight">
+              {service.differentials_title || 'Diferenciais do Hub:'}
+            </h3>
             <ul className="space-y-3">
-              {[
-                "Sistemas de alta eficiência e baixo consumo",
-                "Instalação especializada sem sujeira",
-                "Controle total via smartphone",
-                "Garantia estendida via Hubly Pro"
-              ].map((item, i) => (
+              {(service.differentials || []).map((item: string, i: number) => (
                 <li key={i} className="flex items-center gap-3 text-slate-600 dark:text-slate-400 text-sm md:text-base">
                   <div className="w-5 h-5 rounded-full bg-brand-emerald/20 flex items-center justify-center flex-shrink-0">
                     <div className="w-2 h-2 rounded-full bg-brand-emerald" />
@@ -81,7 +98,7 @@ export default function AquecimentoPage() {
         </div>
       </div>
 
-      <Testimonials serviceId="aquecimento_piso" />
+      <Testimonials serviceId="aquecimento_piso" data={testimonialsData} />
       <LeadForm defaultService="Aquecimento de Piso Premium" />
       <Footer />
     </main>

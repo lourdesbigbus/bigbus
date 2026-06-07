@@ -8,7 +8,7 @@ interface Testimonial {
   id: number;
   text: string;
   service: string;
-  serviceId: 'limpeza_solar' | 'instalacao_manutencao' | 'aquecimento_piso';
+  serviceId: string;
   name: string;
   location: string;
   rating: number;
@@ -75,7 +75,7 @@ const testimonials: Testimonial[] = [
 ];
 
 interface TestimonialsProps {
-  serviceId?: 'limpeza_solar' | 'instalacao_manutencao' | 'aquecimento_piso';
+  serviceId?: string;
   data?: Testimonial[];
 }
 
@@ -121,7 +121,10 @@ export default function Testimonials({ serviceId, data }: TestimonialsProps) {
             <div className="flex-1 mb-8 pt-4">
               <div className="flex gap-0.5 mb-4">
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <Star 
+                    key={s} 
+                    className={`w-4 h-4 ${s <= testimonial.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300 dark:text-slate-700'}`} 
+                  />
                 ))}
               </div>
               <p className="text-slate-600 dark:text-slate-300 italic text-base md:text-lg leading-relaxed font-medium">

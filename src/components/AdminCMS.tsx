@@ -39,21 +39,48 @@ const DEFAULT_SERVICES = [
     title: 'Limpeza Técnica de Placas',
     image: '/images/limpeza.png',
     icon: 'Sun',
-    href: '/calculadora'
+    href: '/calculadora',
+    description: 'Descubra quanto você está deixando de ganhar por causa da sujeira nos seus painéis solares.',
+    subpage_image: '/images/limpeza.png',
+    differentials_title: 'Diferenciais do Serviço:',
+    differentials: [
+      'Aumento imediato de até 25% na geração',
+      'Prevenção de danos permanentes (hotspots)',
+      'Uso de água desmineralizada e produtos corretos',
+      'Equipe certificada para trabalho em altura (NR35)'
+    ]
   },
   {
     id: 'instalacao_manutencao',
     title: 'Instalação e Manutenção',
     image: '/images/instalacao.png',
     icon: 'Wrench',
-    href: '/instalacao'
+    href: '/instalacao',
+    description: 'Projetos de energia solar de alta performance, desde a homologação até o monitoramento ativo.',
+    subpage_image: '/images/instalacao.png',
+    differentials_title: 'O que garantimos:',
+    differentials: [
+      'Projetos assinados por Engenheiros Homologados',
+      'Uso de materiais de primeira linha (Tier 1)',
+      'Pós-venda e monitoramento ativo pela Hubly Pro',
+      'Instalação rápida e com limpeza total'
+    ]
   },
   {
     id: 'aquecimento_piso',
     title: 'Aquecimento de Piso Premium',
     image: '/images/aquecimento.png',
     icon: 'ThermometerSun',
-    href: '/aquecimento'
+    href: '/aquecimento',
+    description: 'O máximo conforto térmico para sua casa com tecnologia de ponta e instalação auditada pela Hubly Pro.',
+    subpage_image: '/images/aquecimento.png',
+    differentials_title: 'Diferenciais do Hub:',
+    differentials: [
+      'Sistemas de alta eficiência e baixo consumo',
+      'Instalação especializada sem sujeira',
+      'Controle total via smartphone',
+      'Garantia estendida via Hubly Pro'
+    ]
   }
 ];
 
@@ -467,6 +494,89 @@ export default function AdminCMS() {
                           />
                         </div>
                       </div>
+
+                      {/* Descrição da Subpágina */}
+                      <div className="space-y-1 md:col-span-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Descrição Textual (Subpágina do Serviço)</label>
+                        <textarea
+                          value={service.description || ''}
+                          onChange={(e) => {
+                            const updated = [...servicesData];
+                            updated[index].description = e.target.value;
+                            setServicesData(updated);
+                          }}
+                          className="w-full text-xs p-2.5 border border-slate-200 bg-white rounded-md focus:outline-none focus:border-brand-emerald min-h-[60px]"
+                          placeholder="Escreva o texto explicativo sobre o serviço que aparecerá na subpágina..."
+                        />
+                      </div>
+
+                      {/* Foto Subpágina & Título dos Diferenciais */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Foto Principal (Subpágina)</label>
+                        <div className="flex items-center gap-3">
+                          <div className="w-16 h-10 bg-white border border-slate-200 rounded overflow-hidden flex-shrink-0 flex items-center justify-center">
+                            {uploadingImageId === `subpage_${service.id}` ? (
+                              <Loader2 className="w-4 h-4 text-brand-emerald animate-spin" />
+                            ) : (
+                              <img src={service.subpage_image || service.image} className="w-full h-full object-cover" />
+                            )}
+                          </div>
+                          <label className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm">
+                            <Upload className="w-3.5 h-3.5" /> Enviar Foto
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                handleImageUpload(e, (url) => {
+                                  const updated = [...servicesData];
+                                  updated[index].subpage_image = url;
+                                  setServicesData(updated);
+                                }, `subpage_${service.id}`);
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Título da Lista de Diferenciais</label>
+                        <input
+                          type="text"
+                          value={service.differentials_title || ''}
+                          onChange={(e) => {
+                            const updated = [...servicesData];
+                            updated[index].differentials_title = e.target.value;
+                            setServicesData(updated);
+                          }}
+                          className="w-full text-xs px-3 py-2 border border-slate-200 bg-white rounded-md focus:outline-none"
+                          placeholder="Ex: Diferenciais do Hub:"
+                        />
+                      </div>
+
+                      {/* Itens Diferenciais */}
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Itens da Lista de Diferenciais (4 itens)</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {[0, 1, 2, 3].map((diffIndex) => (
+                            <input
+                              key={diffIndex}
+                              type="text"
+                              value={service.differentials?.[diffIndex] || ''}
+                              onChange={(e) => {
+                                const updated = [...servicesData];
+                                if (!updated[index].differentials) {
+                                  updated[index].differentials = ['', '', '', ''];
+                                }
+                                updated[index].differentials[diffIndex] = e.target.value;
+                                setServicesData(updated);
+                              }}
+                              className="w-full text-xs px-2.5 py-1.5 border border-slate-200 bg-white rounded-md focus:outline-none"
+                              placeholder={`Diferencial ${diffIndex + 1}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -493,84 +603,137 @@ export default function AdminCMS() {
         {/* ABA DEPOIMENTOS */}
         {subTab === 'testimonials' && (
           <div className="space-y-6">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 mb-1">Depoimentos dos Clientes</h3>
-              <p className="text-xs text-slate-500">Altere os depoimentos de sucesso que atestam a qualidade da Hubly Pro.</p>
+            <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Depoimentos dos Clientes</h3>
+                <p className="text-xs text-slate-500">Adicione, edite ou remova avaliações exibidas nas páginas.</p>
+              </div>
+              <button
+                onClick={() => {
+                  const newTestimonial = {
+                    id: Date.now(),
+                    text: '',
+                    service: 'Limpeza Técnica de Placas',
+                    serviceId: 'limpeza_solar' as any,
+                    name: '',
+                    location: '',
+                    rating: 5
+                  };
+                  setTestimonialsData([...testimonialsData, newTestimonial]);
+                }}
+                className="bg-brand-emerald text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-emerald-600 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" /> Adicionar Depoimento
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {testimonialsData.map((testimonial, index) => {
-                return (
-                  <div key={testimonial.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-brand-emerald bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full">
-                        {testimonial.service}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`w-3.5 h-3.5 cursor-pointer ${
-                              star <= testimonial.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'
-                            }`}
+            {testimonialsData.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-xs italic">
+                Nenhum depoimento cadastrado. Clique no botão acima para adicionar.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {testimonialsData.map((testimonial, index) => {
+                  return (
+                    <div key={testimonial.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 space-y-3 relative">
+                      <div className="flex justify-between items-center flex-wrap gap-2">
+                        <select
+                          value={testimonial.serviceId}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const relatedService = servicesData.find(s => s.id === val);
+                            const updated = [...testimonialsData];
+                            updated[index].serviceId = val as any;
+                            updated[index].service = relatedService ? relatedService.title : 'Outro';
+                            setTestimonialsData(updated);
+                          }}
+                          className="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 rounded px-2 py-1 focus:outline-none"
+                        >
+                          <option value="limpeza_solar">Limpeza Técnica de Placas</option>
+                          <option value="instalacao_manutencao">Instalação e Manutenção</option>
+                          <option value="aquecimento_piso">Aquecimento de Piso Premium</option>
+                        </select>
+                        
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-0.5 mr-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-3.5 h-3.5 cursor-pointer ${
+                                  star <= testimonial.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'
+                                }`}
+                                onClick={() => {
+                                  const updated = [...testimonialsData];
+                                  updated[index].rating = star;
+                                  setTestimonialsData(updated);
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <button
+                            type="button"
                             onClick={() => {
+                              if (confirm('Deseja realmente excluir este depoimento?')) {
+                                setTestimonialsData(testimonialsData.filter(t => t.id !== testimonial.id));
+                              }
+                            }}
+                            className="p-1 text-slate-400 hover:text-red-500 rounded hover:bg-red-50 transition-all cursor-pointer"
+                            title="Excluir Depoimento"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Nome do Cliente</label>
+                          <input
+                            type="text"
+                            value={testimonial.name}
+                            onChange={(e) => {
                               const updated = [...testimonialsData];
-                              updated[index].rating = star;
+                              updated[index].name = e.target.value;
                               setTestimonialsData(updated);
                             }}
+                            className="w-full text-xs px-3 py-1.5 border border-slate-200 bg-white rounded-md focus:outline-none focus:border-brand-emerald"
+                            placeholder="Ex: Carlos Eduardo"
                           />
-                        ))}
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Localização</label>
+                          <input
+                            type="text"
+                            value={testimonial.location}
+                            onChange={(e) => {
+                              const updated = [...testimonialsData];
+                              updated[index].location = e.target.value;
+                              setTestimonialsData(updated);
+                            }}
+                            className="w-full text-xs px-3 py-1.5 border border-slate-200 bg-white rounded-md focus:outline-none"
+                            placeholder="Ex: Florianópolis, SC"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Nome do Cliente</label>
-                        <input
-                          type="text"
-                          value={testimonial.name}
+                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Depoimento</label>
+                        <textarea
+                          value={testimonial.text}
                           onChange={(e) => {
                             const updated = [...testimonialsData];
-                            updated[index].name = e.target.value;
+                            updated[index].text = e.target.value;
                             setTestimonialsData(updated);
                           }}
-                          className="w-full text-xs px-3 py-1.5 border border-slate-200 bg-white rounded-md focus:outline-none focus:border-brand-emerald"
-                          placeholder="Ex: Carlos Eduardo"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Localização</label>
-                        <input
-                          type="text"
-                          value={testimonial.location}
-                          onChange={(e) => {
-                            const updated = [...testimonialsData];
-                            updated[index].location = e.target.value;
-                            setTestimonialsData(updated);
-                          }}
-                          className="w-full text-xs px-3 py-1.5 border border-slate-200 bg-white rounded-md focus:outline-none"
-                          placeholder="Ex: Florianópolis, SC"
+                          className="w-full text-xs p-2.5 border border-slate-200 bg-white rounded-md focus:outline-none focus:border-brand-emerald min-h-[75px] resize-none"
+                          placeholder="Escreva a avaliação do cliente aqui..."
                         />
                       </div>
                     </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Depoimento</label>
-                      <textarea
-                        value={testimonial.text}
-                        onChange={(e) => {
-                          const updated = [...testimonialsData];
-                          updated[index].text = e.target.value;
-                          setTestimonialsData(updated);
-                        }}
-                        className="w-full text-xs p-2.5 border border-slate-200 bg-white rounded-md focus:outline-none focus:border-brand-emerald min-h-[70px] resize-none"
-                        placeholder="Escreva a avaliação do cliente aqui..."
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="pt-4 border-t border-slate-100 flex justify-end">
               <button
