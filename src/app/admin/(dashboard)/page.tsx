@@ -518,11 +518,14 @@ function DashboardContent() {
                     <tr className="bg-slate-50/80 text-slate-500 text-[10px] uppercase tracking-[0.1em] border-b border-slate-200">
                       <th className="px-6 py-4 font-bold">Entrada (SLA)</th>
                       <th className="px-6 py-4 font-bold">Cliente</th>
+                      <th className="px-6 py-4 font-bold">Origem</th>
                       <th className="px-6 py-4 font-bold">Serviço</th>
                       <th className="px-6 py-4 font-bold">Prioridade</th>
                       <th className="px-6 py-4 font-bold">Status</th>
                       <th className="px-6 py-4 font-bold text-right">Orçamento</th>
                       <th className="px-6 py-4 font-bold text-right">Fechado</th>
+                      <th className="px-6 py-4 font-bold">Próx. Retorno</th>
+                      <th className="px-6 py-4 font-bold">Motivo Perda</th>
                       <th className="px-6 py-4 font-bold text-center">Ações</th>
                     </tr>
                   </thead>
@@ -539,12 +542,12 @@ function DashboardContent() {
                           <div className="font-bold text-slate-900 cursor-pointer hover:text-brand-emerald flex items-center gap-2" onClick={() => setSelectedLead(lead)}>
                             {lead.nome} <Edit3 className="w-3 h-3 text-slate-400 animate-pulse" />
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] text-slate-400 font-mono">{lead.whatsapp}</span>
-                            <span className="text-[8px] bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-bold uppercase tracking-tight">
-                              {lead.origem === 'Calculadora Solar' ? 'Calculadora' : lead.origem === 'Formulário Geral' ? 'Formulário' : 'Site'}
-                            </span>
-                          </div>
+                          <div className="text-[10px] text-slate-400 mt-0.5 font-mono">{lead.whatsapp}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-[8px] bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-bold uppercase tracking-tight">
+                            {lead.origem === 'Calculadora Solar' ? 'Calculadora' : lead.origem === 'Formulário Geral' ? 'Formulário' : 'Site'}
+                          </span>
                         </td>
                         <td className="px-6 py-4">
                           <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight">
@@ -574,6 +577,16 @@ function DashboardContent() {
                         </td>
                         <td className="px-6 py-4 font-mono font-bold text-emerald-600 text-right">
                           {lead.valor_fechado ? `R$ ${lead.valor_fechado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}
+                        </td>
+                        <td className="px-6 py-4 text-slate-500 whitespace-nowrap font-medium text-[11px]">
+                          {lead.data_proximo_contato ? (
+                            <span>{new Date(lead.data_proximo_contato + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-red-500 italic max-w-[150px] truncate text-[11px]" title={lead.motivo_perda || ''}>
+                          {lead.status === 'Perdido' && lead.motivo_perda ? lead.motivo_perda : <span className="text-slate-300">—</span>}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-center gap-2">
