@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { getAllSiteSettingsAction } from "@/app/actions/settings";
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import "./globals.css";
 
 const inter = Inter({
@@ -18,11 +20,15 @@ export const metadata: Metadata = {
   description: "Hub dos Profissionais - Maximize sua Economia e Conforto Solar",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settingsRes = await getAllSiteSettingsAction();
+  const settings = settingsRes.success ? settingsRes.data : null;
+  const whatsappNumber = settings?.general?.whatsappNumber || '5548999999999';
+
   return (
     <html
       lang="pt-BR"
@@ -37,6 +43,7 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           {children}
+          <WhatsAppFloatingButton number={whatsappNumber} />
         </ThemeProvider>
       </body>
     </html>

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShieldCheck, Cpu } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Cpu, ArrowRight } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import TrustSection from '@/components/TrustSection';
 import Testimonials from '@/components/Testimonials';
@@ -65,6 +65,16 @@ export default async function AutomacaoResidencialPage() {
            <p className="text-slate-500 dark:text-slate-400 mt-6 text-lg max-w-2xl mx-auto">
              {service.description}
            </p>
+           <div className="mt-8 flex justify-center">
+             <a
+               href="#lead-form"
+               className="group relative bg-brand-orange hover:bg-orange-400 text-white font-black py-4 px-8 rounded-2xl shadow-xl shadow-orange-500/30 transition-all hover:scale-105 active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2 overflow-hidden cursor-pointer"
+             >
+               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shine" />
+               Fazer Orçamento
+               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+             </a>
+           </div>
          </div>
       </section>
 

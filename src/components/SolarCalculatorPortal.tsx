@@ -116,6 +116,18 @@ export default function SolarCalculatorPortal() {
           Simule agora e descubra seu <strong className="text-brand-navy dark:text-white">potencial real de economia.</strong>
         </motion.p>
 
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+          className="flex lg:justify-start justify-center">
+          <a
+            href="#lead-form"
+            className="group relative bg-brand-orange hover:bg-orange-400 text-white font-black py-4 px-8 rounded-2xl shadow-xl shadow-orange-500/30 transition-all hover:scale-105 active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2 overflow-hidden cursor-pointer"
+          >
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shine" />
+            Fazer Orçamento
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </a>
+        </motion.div>
+
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
           className="flex items-center justify-center lg:justify-start gap-6 pt-4">
           <div className="flex flex-col">

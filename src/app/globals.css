@@ -66,3 +66,7 @@ body {
     opacity: 0.05;
   }
 }
+
+html {
+  scroll-behavior: smooth;
+}
