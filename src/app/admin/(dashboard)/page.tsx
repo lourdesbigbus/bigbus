@@ -1,16 +1,26 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { updateLeadStatusAction, updateLeadDetailsAction, getLeadsAction } from '@/app/actions/leads';
+import { updateLeadStatusAction, updateLeadDetailsAction, getLeadsAction, createLeadFromAdminAction } from '@/app/actions/leads';
 import { env } from '@/config/env';
 import { Lead, LeadStatus } from '@/types';
 import { MessageCircle, Download, Filter, Plus, MoreHorizontal, Search, LayoutGrid, List, X, Clock, Save, Edit3, BarChart, Users, TrendingUp } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import AdminCMS from '@/components/AdminCMS';
 
+// Lista de Serviços Padrão para uso nos formulários do CRM
+const servicesList = [
+  'Limpeza Técnica de Placas',
+  'Instalação e Manutenção',
+  'Aquecimento de Piso Premium',
+  'Energia Solar'
+];
+
 // Função para formatar SLA (Data de Entrada)
 const timeAgo = (dateStr: string) => {
+  if (!dateStr) return 'Agora mesmo';
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return 'Agora mesmo';
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
   
@@ -35,6 +45,63 @@ function DashboardContent() {
   const [tempFilter, setTempFilter] = useState('Todos');
   const [origemFilter, setOrigemFilter] = useState('Todos');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+
+  // Estados para Criação Manual de Leads
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newLeadData, setNewLeadData] = useState<Omit<Lead, 'id' | 'created_at'>>({
+    nome: '',
+    whatsapp: '',
+    email: '',
+    localizacao: '',
+    cep: '',
+    concessionaria: '',
+    servico: 'Instalação e Manutenção',
+    status: 'Pendente',
+    temperatura: 'Morno',
+    valor_proposta: 0,
+    valor_fechado: 0,
+    valor_conta: 0,
+    perda_estimada: 0,
+    observacoes: '',
+    origem: 'Manual'
+  });
+
+  const handleCreateLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLeadData.nome.trim() || !newLeadData.whatsapp.trim()) {
+      alert('Nome e WhatsApp são campos obrigatórios!');
+      return;
+    }
+
+    try {
+      const res = await createLeadFromAdminAction(newLeadData);
+      if (!res.success) throw new Error(res.error);
+
+      setIsCreateModalOpen(false);
+      // Resetar formulário
+      setNewLeadData({
+        nome: '',
+        whatsapp: '',
+        email: '',
+        localizacao: '',
+        cep: '',
+        concessionaria: '',
+        servico: 'Instalação e Manutenção',
+        status: 'Pendente',
+        temperatura: 'Morno',
+        valor_proposta: 0,
+        valor_fechado: 0,
+        valor_conta: 0,
+        perda_estimada: 0,
+        observacoes: '',
+        origem: 'Manual'
+      });
+      fetchLeads();
+    } catch (error: any) {
+      console.error('Erro ao criar lead:', error);
+      alert(error.message || 'Erro ao criar o lead.');
+    }
+  };
 
   useEffect(() => {
     fetchLeads();
@@ -258,6 +325,12 @@ function DashboardContent() {
             </div>
             <button onClick={exportToCSV} className="bg-white border border-slate-200 text-slate-600 px-3 py-2 rounded-md text-xs font-semibold hover:bg-slate-50 transition-all flex items-center gap-2">
               <Download className="w-3.5 h-3.5" /> Exportar
+            </button>
+            <button 
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-brand-emerald text-white px-3 py-2 rounded-md text-xs font-bold hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" /> Novo Lead
             </button>
           </div>
         )}
@@ -590,6 +663,13 @@ function DashboardContent() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => setSelectedLead(lead)}
+                              className="p-2 rounded-md bg-slate-50 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-all border border-slate-200 shadow-sm"
+                              title="Editar Lead"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
                             <a 
                               href={`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}`} 
                               target="_blank" 
@@ -664,183 +744,523 @@ function DashboardContent() {
         </>
       )}
 
-      {/* Modal de Detalhes do Lead */}
+      {/* Modal de Detalhes do Lead (Edição Completa) */}
       {selectedLead && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/50">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  {selectedLead.nome}
-                  <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider border ${getStatusColor(selectedLead.status)}`}>
-                    {selectedLead.status}
-                  </span>
-                </h2>
-                <p className="text-xs text-slate-500 mt-1">SLA: {timeAgo(selectedLead.created_at)} • Origem: {selectedLead.origem || 'Landing Page'}</p>
-              </div>
-              <button onClick={() => setSelectedLead(null)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-md">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Contato & Local</label>
-                  <div className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
-                    <p><strong>WhatsApp:</strong> {selectedLead.whatsapp || <span className="text-slate-400 italic">Não informado</span>}</p>
-                    <p><strong>E-mail:</strong> {selectedLead.email || <span className="text-slate-400 italic">Não informado</span>}</p>
-                    <p><strong>Local:</strong> {selectedLead.localizacao} {selectedLead.cep && `(CEP: ${selectedLead.cep})`}</p>
-                    {selectedLead.concessionaria && (
-                      <p><strong>Concessionária:</strong> <span className="uppercase">{selectedLead.concessionaria}</span></p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Serviço de Interesse</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    {selectedLead.servico}
-                    {selectedLead.valor_conta && selectedLead.valor_conta > 0 ? (
-                      <span className="text-xs text-slate-500 font-normal block mt-1">
-                        Gasto mensal com energia: <strong>R$ {selectedLead.valor_conta.toLocaleString('pt-BR')}</strong>
+            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-white w-full max-w-3xl rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh]">
+                <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      Editar Lead: {selectedLead.nome}
+                      <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider border ${getStatusColor(selectedLead.status)}`}>
+                        {selectedLead.status}
                       </span>
-                    ) : null}
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">SLA: {timeAgo(selectedLead.created_at)} • Origem: {selectedLead.origem || 'Landing Page'}</p>
                   </div>
+                  <button onClick={() => setSelectedLead(null)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-md">
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-
-                {/* Valores Financeiros */}
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block border-b border-slate-200 pb-1.5">Negociação Comercial</label>
-                  <div className="grid grid-cols-2 gap-3">
+                
+                <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">Dados do Cliente</h3>
+                    
                     <div>
-                      <p className="text-[9px] font-bold text-slate-500 uppercase">Valor Proposta</p>
-                      <div className="relative mt-1">
-                        <span className="absolute left-2.5 top-1.5 text-xs text-slate-400 font-bold">R$</span>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Nome completo *</label>
+                      <input 
+                        type="text"
+                        required
+                        value={selectedLead.nome}
+                        onChange={(e) => setSelectedLead({...selectedLead, nome: e.target.value})}
+                        className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-semibold bg-slate-50/50"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">WhatsApp / Celular *</label>
                         <input 
-                          type="number" 
-                          value={selectedLead.valor_proposta || ''}
-                          onChange={(e) => setSelectedLead({...selectedLead, valor_proposta: Number(e.target.value)})}
-                          className="w-full pl-8 pr-2 py-1 text-xs border border-slate-200 rounded focus:outline-none focus:border-brand-emerald font-bold"
-                          placeholder="0.00"
+                          type="text"
+                          required
+                          value={selectedLead.whatsapp}
+                          onChange={(e) => setSelectedLead({...selectedLead, whatsapp: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-mono font-medium bg-slate-50/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">E-mail</label>
+                        <input 
+                          type="email"
+                          value={selectedLead.email || ''}
+                          onChange={(e) => setSelectedLead({...selectedLead, email: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50/50"
                         />
                       </div>
                     </div>
-                    <div>
-                      <p className="text-[9px] font-bold text-emerald-600 uppercase">Valor Fechado</p>
-                      <div className="relative mt-1">
-                        <span className="absolute left-2.5 top-1.5 text-xs text-emerald-500 font-bold">R$</span>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Localização (Cidade/UF)</label>
                         <input 
-                          type="number" 
-                          value={selectedLead.valor_fechado || ''}
-                          onChange={(e) => setSelectedLead({...selectedLead, valor_fechado: Number(e.target.value)})}
-                          className="w-full pl-8 pr-2 py-1 text-xs border border-emerald-200 rounded focus:outline-none focus:border-emerald-500 font-bold bg-emerald-50/50"
-                          placeholder="0.00"
+                          type="text"
+                          value={selectedLead.localizacao}
+                          onChange={(e) => setSelectedLead({...selectedLead, localizacao: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">CEP</label>
+                        <input 
+                          type="text"
+                          value={selectedLead.cep || ''}
+                          onChange={(e) => setSelectedLead({...selectedLead, cep: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-mono font-medium bg-slate-50/50"
                         />
                       </div>
                     </div>
-                  </div>
-                  {selectedLead.perda_estimada && selectedLead.perda_estimada > 0 ? (
-                    <p className="text-[9px] text-slate-400 font-semibold italic mt-1">
-                      Estimativa da calculadora: R$ {selectedLead.perda_estimada.toLocaleString('pt-BR')}
-                    </p>
-                  ) : null}
-                </div>
 
-                {/* Prioridade & Agendamento */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Prioridade</label>
-                    <select 
-                      value={selectedLead.temperatura || 'Morno'}
-                      onChange={(e) => setSelectedLead({...selectedLead, temperatura: e.target.value as any})}
-                      className="w-full py-2 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-semibold"
-                    >
-                      <option value="Frio">❄️ Frio</option>
-                      <option value="Morno">⚡ Morno</option>
-                      <option value="Quente">🔥 Quente</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Próximo Contato</label>
-                    <input 
-                      type="date" 
-                      value={selectedLead.data_proximo_contato || ''}
-                      onChange={(e) => setSelectedLead({...selectedLead, data_proximo_contato: e.target.value})}
-                      className="w-full py-1.5 px-2 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald font-semibold"
-                    />
-                  </div>
-                </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Concessionária de Energia</label>
+                        <input 
+                          type="text"
+                          value={selectedLead.concessionaria || ''}
+                          onChange={(e) => setSelectedLead({...selectedLead, concessionaria: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Gasto Mensal de Energia (R$)</label>
+                        <input 
+                          type="number"
+                          value={selectedLead.valor_conta || ''}
+                          onChange={(e) => setSelectedLead({...selectedLead, valor_conta: e.target.value ? Number(e.target.value) : undefined})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50/50"
+                        />
+                      </div>
+                    </div>
 
-                {/* Status & Motivo de Perda */}
-                <div className="space-y-3">
-                  <div>
-                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Alterar Status</label>
-                     <select 
-                        value={selectedLead.status}
-                        onChange={(e) => handleStatusChange(selectedLead.id, e.target.value)}
-                        className="w-full py-2 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-bold"
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Serviço de Interesse</label>
+                      <select 
+                        value={servicesList.includes(selectedLead.servico) ? selectedLead.servico : 'Outro'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val !== 'Outro') {
+                            setSelectedLead({...selectedLead, servico: val});
+                          } else {
+                            setSelectedLead({...selectedLead, servico: ''});
+                          }
+                        }}
+                        className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-medium text-slate-700"
                       >
-                        <option value="Pendente">Pendente</option>
-                        <option value="Em Atendimento">Em Atendimento</option>
-                        <option value="Concluído">Concluído</option>
-                        <option value="Pago">Pago</option>
-                        <option value="Perdido">Perdido</option>
+                        {servicesList.map(s => <option key={s} value={s}>{s}</option>)}
+                        <option value="Outro">Outro (especificar)...</option>
                       </select>
+                      
+                      {(!servicesList.includes(selectedLead.servico) || selectedLead.servico === '') && (
+                        <input 
+                          type="text"
+                          placeholder="Digite o nome do serviço..."
+                          value={selectedLead.servico}
+                          onChange={(e) => setSelectedLead({...selectedLead, servico: e.target.value})}
+                          className="w-full mt-2 py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50"
+                        />
+                      )}
+                    </div>
                   </div>
 
-                  {selectedLead.status === 'Perdido' && (
-                    <div className="animate-in slide-in-from-top-1 duration-200">
-                       <label className="text-[10px] font-bold text-red-500 uppercase tracking-widest block mb-1">Motivo da Perda</label>
-                       <select 
-                          value={selectedLead.motivo_perda || ''}
-                          onChange={(e) => setSelectedLead({...selectedLead, motivo_perda: e.target.value})}
-                          className="w-full py-2 px-3 text-xs border border-red-200 rounded-md focus:outline-none focus:border-red-500 bg-white font-semibold text-slate-700"
-                        >
-                          <option value="">Selecione um motivo...</option>
-                          <option value="Preço alto / Sem orçamento">Preço alto / Sem orçamento</option>
-                          <option value="Fechou com concorrente">Fechou com concorrente</option>
-                          <option value="Desistiu do projeto">Desistiu do projeto</option>
-                          <option value="Sem retorno / Não responde">Sem retorno / Não responde</option>
-                          <option value="Outro (Detalhar nas observações)">Outro (Detalhar nas observações)</option>
-                        </select>
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">Negociação & Observações</h3>
+
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Valor Proposta (Orçamento)</p>
+                          <div className="relative mt-1">
+                            <span className="absolute left-2.5 top-1.5 text-xs text-slate-400 font-bold">R$</span>
+                            <input 
+                              type="number" 
+                              value={selectedLead.valor_proposta || ''}
+                              onChange={(e) => setSelectedLead({...selectedLead, valor_proposta: Number(e.target.value)})}
+                              className="w-full pl-8 pr-2 py-1.5 text-xs border border-slate-200 rounded focus:outline-none focus:border-brand-emerald font-bold"
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Valor Fechado (Contrato)</p>
+                          <div className="relative mt-1">
+                            <span className="absolute left-2.5 top-1.5 text-xs text-emerald-500 font-bold">R$</span>
+                            <input 
+                              type="number" 
+                              value={selectedLead.valor_fechado || ''}
+                              onChange={(e) => setSelectedLead({...selectedLead, valor_fechado: Number(e.target.value)})}
+                              className="w-full pl-8 pr-2 py-1.5 text-xs border border-emerald-200 rounded focus:outline-none focus:border-emerald-500 font-bold bg-emerald-50/50"
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Status do Lead</label>
+                        <select 
+                          value={selectedLead.status}
+                          onChange={(e) => setSelectedLead({...selectedLead, status: e.target.value as LeadStatus})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-bold text-slate-700"
+                        >
+                          <option value="Pendente">Pendente</option>
+                          <option value="Em Atendimento">Em Atendimento</option>
+                          <option value="Concluído">Concluído</option>
+                          <option value="Pago">Pago</option>
+                          <option value="Perdido">Perdido</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Prioridade (Temperatura)</label>
+                        <select 
+                          value={selectedLead.temperatura || 'Morno'}
+                          onChange={(e) => setSelectedLead({...selectedLead, temperatura: e.target.value as any})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-semibold text-slate-700"
+                        >
+                          <option value="Frio">❄️ Frio</option>
+                          <option value="Morno">⚡ Morno</option>
+                          <option value="Quente">🔥 Quente</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Data de Próximo Contato</label>
+                        <input 
+                          type="date" 
+                          value={selectedLead.data_proximo_contato || ''}
+                          onChange={(e) => setSelectedLead({...selectedLead, data_proximo_contato: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald font-semibold text-slate-700 bg-white"
+                        />
+                      </div>
+                      
+                      {selectedLead.status === 'Perdido' && (
+                        <div className="animate-in slide-in-from-top-1 duration-200">
+                          <label className="text-[10px] font-bold text-red-500 uppercase tracking-widest block mb-1">Motivo da Perda</label>
+                          <select 
+                            value={selectedLead.motivo_perda || ''}
+                            onChange={(e) => setSelectedLead({...selectedLead, motivo_perda: e.target.value})}
+                            className="w-full py-1.5 px-3 text-xs border border-red-200 rounded-md focus:outline-none focus:border-red-500 bg-white font-semibold text-slate-700"
+                          >
+                            <option value="">Selecione um motivo...</option>
+                            <option value="Preço alto / Sem orçamento">Preço alto / Sem orçamento</option>
+                            <option value="Fechou com concorrente">Fechou com concorrente</option>
+                            <option value="Desistiu do projeto">Desistiu do projeto</option>
+                            <option value="Sem retorno / Não responde">Sem retorno / Não responde</option>
+                            <option value="Outro (Detalhar nas observações)">Outro (Detalhar nas observações)</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                        Histórico / Observações de Venda
+                      </label>
+                      <textarea 
+                        value={selectedLead.observacoes || ''}
+                        onChange={(e) => setSelectedLead({...selectedLead, observacoes: e.target.value})}
+                        placeholder="Ex: Cliente pediu para retornar a ligação na terça-feira. Achou o valor inicial um pouco alto..."
+                        className="w-full min-h-[120px] p-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-yellow-50/30 resize-none text-slate-700"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 flex-shrink-0">
+                  <button 
+                    onClick={() => setSelectedLead(null)}
+                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-md transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={() => handleSaveLeadDetails(selectedLead)}
+                    className="px-4 py-2 text-xs font-bold text-white bg-brand-emerald hover:bg-emerald-600 rounded-md shadow-sm transition-all flex items-center gap-2"
+                  >
+                    <Save className="w-4 h-4" /> Salvar Alterações
+                  </button>
                 </div>
               </div>
-              
-              <div className="flex flex-col h-full">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 flex-shrink-0">
-                  Histórico / Observações de Venda
-                </label>
-                <textarea 
-                  value={selectedLead.observacoes || ''}
-                  onChange={(e) => setSelectedLead({...selectedLead, observacoes: e.target.value})}
-                  placeholder="Ex: Cliente pediu para retornar a ligação na terça-feira. Achou o valor inicial um pouco alto, oferecido desconto de 5%..."
-                  className="w-full flex-1 min-h-[150px] p-3 text-sm border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-yellow-50/30 resize-none"
-                />
-              </div>
             </div>
+          )}
 
-            <div className="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-              <button 
-                onClick={() => setSelectedLead(null)}
-                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-md transition-all"
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={() => handleSaveLeadDetails(selectedLead)}
-                className="px-4 py-2 text-sm font-bold text-white bg-brand-emerald hover:bg-emerald-600 rounded-md shadow-sm transition-all flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" /> Salvar Alterações
-              </button>
+          {/* Modal de Inclusão Manual ("Novo Lead") */}
+          {isCreateModalOpen && (
+            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <form onSubmit={handleCreateLead} className="bg-white w-full max-w-3xl rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh]">
+                <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      Adicionar Novo Lead Manual
+                      <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider border bg-slate-100 text-slate-600 border-slate-200">
+                        Manual
+                      </span>
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">Insira os dados do lead offline ou capturado por outros canais.</p>
+                  </div>
+                  <button type="button" onClick={() => setIsCreateModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-md">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">Dados do Cliente</h3>
+                    
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Nome completo *</label>
+                      <input 
+                        type="text"
+                        required
+                        placeholder="Nome do cliente"
+                        value={newLeadData.nome}
+                        onChange={(e) => setNewLeadData({...newLeadData, nome: e.target.value})}
+                        className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-semibold bg-slate-50/50"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">WhatsApp / Celular *</label>
+                        <input 
+                          type="text"
+                          required
+                          placeholder="(00) 00000-0000"
+                          value={newLeadData.whatsapp}
+                          onChange={(e) => setNewLeadData({...newLeadData, whatsapp: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-mono font-medium bg-slate-50/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">E-mail</label>
+                        <input 
+                          type="email"
+                          placeholder="email@cliente.com"
+                          value={newLeadData.email}
+                          onChange={(e) => setNewLeadData({...newLeadData, email: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Localização (Cidade/UF)</label>
+                        <input 
+                          type="text"
+                          placeholder="Ex: Porto Alegre / RS"
+                          value={newLeadData.localizacao}
+                          onChange={(e) => setNewLeadData({...newLeadData, localizacao: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">CEP</label>
+                        <input 
+                          type="text"
+                          placeholder="00000-000"
+                          value={newLeadData.cep}
+                          onChange={(e) => setNewLeadData({...newLeadData, cep: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-mono font-medium bg-slate-50/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Concessionária de Energia</label>
+                        <input 
+                          type="text"
+                          placeholder="Ceee, RGE, Light..."
+                          value={newLeadData.concessionaria}
+                          onChange={(e) => setNewLeadData({...newLeadData, concessionaria: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Gasto Mensal de Energia (R$)</label>
+                        <input 
+                          type="number"
+                          placeholder="Ex: 350"
+                          value={newLeadData.valor_conta || ''}
+                          onChange={(e) => setNewLeadData({...newLeadData, valor_conta: e.target.value ? Number(e.target.value) : undefined})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Serviço de Interesse</label>
+                      <select 
+                        value={servicesList.includes(newLeadData.servico || '') ? newLeadData.servico : 'Outro'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val !== 'Outro') {
+                            setNewLeadData({...newLeadData, servico: val});
+                          } else {
+                            setNewLeadData({...newLeadData, servico: ''});
+                          }
+                        }}
+                        className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-medium text-slate-700"
+                      >
+                        {servicesList.map(s => <option key={s} value={s}>{s}</option>)}
+                        <option value="Outro">Outro (especificar)...</option>
+                      </select>
+                      
+                      {(!servicesList.includes(newLeadData.servico || '') || newLeadData.servico === '') && (
+                        <input 
+                          type="text"
+                          required
+                          placeholder="Digite o nome do serviço..."
+                          value={newLeadData.servico}
+                          onChange={(e) => setNewLeadData({...newLeadData, servico: e.target.value})}
+                          className="w-full mt-2 py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 font-medium bg-slate-50"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">Negociação & Observações</h3>
+
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Valor Proposta (Orçamento)</p>
+                          <div className="relative mt-1">
+                            <span className="absolute left-2.5 top-1.5 text-xs text-slate-400 font-bold">R$</span>
+                            <input 
+                              type="number" 
+                              value={newLeadData.valor_proposta || ''}
+                              onChange={(e) => setNewLeadData({...newLeadData, valor_proposta: Number(e.target.value)})}
+                              className="w-full pl-8 pr-2 py-1.5 text-xs border border-slate-200 rounded focus:outline-none focus:border-brand-emerald font-bold"
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Valor Fechado (Contrato)</p>
+                          <div className="relative mt-1">
+                            <span className="absolute left-2.5 top-1.5 text-xs text-emerald-500 font-bold">R$</span>
+                            <input 
+                              type="number" 
+                              value={newLeadData.valor_fechado || ''}
+                              onChange={(e) => setNewLeadData({...newLeadData, valor_fechado: Number(e.target.value)})}
+                              className="w-full pl-8 pr-2 py-1.5 text-xs border border-emerald-200 rounded focus:outline-none focus:border-emerald-500 font-bold bg-emerald-50/50"
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Status do Lead</label>
+                        <select 
+                          value={newLeadData.status}
+                          onChange={(e) => setNewLeadData({...newLeadData, status: e.target.value as LeadStatus})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-bold text-slate-700"
+                        >
+                          <option value="Pendente">Pendente</option>
+                          <option value="Em Atendimento">Em Atendimento</option>
+                          <option value="Concluído">Concluído</option>
+                          <option value="Pago">Pago</option>
+                          <option value="Perdido">Perdido</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Prioridade (Temperatura)</label>
+                        <select 
+                          value={newLeadData.temperatura || 'Morno'}
+                          onChange={(e) => setNewLeadData({...newLeadData, temperatura: e.target.value as any})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white font-semibold text-slate-700"
+                        >
+                          <option value="Frio">❄️ Frio</option>
+                          <option value="Morno">⚡ Morno</option>
+                          <option value="Quente">🔥 Quente</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Data de Próximo Contato</label>
+                        <input 
+                          type="date" 
+                          value={newLeadData.data_proximo_contato || ''}
+                          onChange={(e) => setNewLeadData({...newLeadData, data_proximo_contato: e.target.value})}
+                          className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald font-semibold text-slate-700 bg-white"
+                        />
+                      </div>
+                      
+                      {newLeadData.status === 'Perdido' && (
+                        <div className="animate-in slide-in-from-top-1 duration-200">
+                          <label className="text-[10px] font-bold text-red-500 uppercase tracking-widest block mb-1">Motivo da Perda</label>
+                          <select 
+                            value={newLeadData.motivo_perda || ''}
+                            onChange={(e) => setNewLeadData({...newLeadData, motivo_perda: e.target.value})}
+                            className="w-full py-1.5 px-3 text-xs border border-red-200 rounded-md focus:outline-none focus:border-red-500 bg-white font-semibold text-slate-700"
+                          >
+                            <option value="">Selecione um motivo...</option>
+                            <option value="Preço alto / Sem orçamento">Preço alto / Sem orçamento</option>
+                            <option value="Fechou com concorrente">Fechou com concorrente</option>
+                            <option value="Desistiu do projeto">Desistiu do projeto</option>
+                            <option value="Sem retorno / Não responde">Sem retorno / Não responde</option>
+                            <option value="Outro (Detalhar nas observações)">Outro (Detalhar nas observações)</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                        Histórico / Observações de Venda
+                      </label>
+                      <textarea 
+                        value={newLeadData.observacoes || ''}
+                        onChange={(e) => setNewLeadData({...newLeadData, observacoes: e.target.value})}
+                        placeholder="Ex: Cliente indicou interesse por recomendação. Agendado visita para orçamento..."
+                        className="w-full min-h-[120px] p-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-yellow-50/30 resize-none text-slate-700"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 flex-shrink-0">
+                  <button 
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-md transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-4 py-2 text-xs font-bold text-white bg-brand-emerald hover:bg-emerald-600 rounded-md shadow-sm transition-all flex items-center gap-2"
+                  >
+                    <Save className="w-4 h-4" /> Cadastrar Lead
+                  </button>
+                </div>
+              </form>
             </div>
-          </div>
+          )}
         </div>
-      )}
-    </div>
-  );
-}
+      );
+    }
 
 export default function AdminDashboard() {
   return (

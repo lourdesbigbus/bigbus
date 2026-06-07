@@ -120,6 +120,14 @@ export async function updateLeadDetailsAction(lead: Lead) {
     const { data, error } = await supabaseAdmin
       .from('leads')
       .update({
+        nome: lead.nome,
+        whatsapp: lead.whatsapp,
+        localizacao: lead.localizacao,
+        servico: lead.servico,
+        email: lead.email,
+        cep: lead.cep,
+        concessionaria: lead.concessionaria,
+        valor_conta: lead.valor_conta,
         observacoes: lead.observacoes,
         valor_fechado: lead.valor_fechado,
         valor_proposta: lead.valor_proposta,
@@ -141,5 +149,33 @@ export async function updateLeadDetailsAction(lead: Lead) {
     return { success: true, data };
   } catch (error: any) {
     return { success: false, error: error.message || 'Erro ao salvar os detalhes do lead' };
+  }
+}
+
+/**
+ * Creates a new lead from the admin dashboard (requires admin session).
+ */
+export async function createLeadFromAdminAction(leadData: Omit<Lead, 'id' | 'created_at'>) {
+  try {
+    const isAuthenticated = await verifyAdminSession();
+    if (!isAuthenticated) {
+      return { success: false, error: 'Acesso não autorizado. Sessão inválida ou expirada.' };
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('leads')
+      .insert([leadData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating lead from admin in database:', error);
+      throw new Error(error.message);
+    }
+
+    revalidatePath('/admin');
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Erro ao cadastrar o lead' };
   }
 }
