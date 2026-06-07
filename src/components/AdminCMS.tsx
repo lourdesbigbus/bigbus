@@ -69,6 +69,23 @@ const DEFAULT_SERVICES = [
     hidden: false
   },
   {
+    id: 'automacao_residencial',
+    title: 'Automação Residencial',
+    image: '/images/automacao_residencial.png',
+    icon: 'Cpu',
+    href: '/automacao-residencial',
+    description: 'Sistemas completos de automação residencial. Controle iluminação, som, persianas e climatização de forma inteligente e integrada.',
+    subpage_image: '/images/automacao_residencial.png',
+    differentials_title: 'O que garantimos:',
+    differentials: [
+      'Projetos personalizados e integração inteligente de sistemas',
+      'Controle unificado via smartphone, tablet ou assistente de voz',
+      'Automação de iluminação cênica, persianas e climatização',
+      'Sonorização multiroom e home theater de alta fidelidade'
+    ],
+    hidden: false
+  },
+  {
     id: 'aquecimento_piso',
     title: 'Aquecimento de Piso Premium',
     image: '/images/aquecimento.png',
@@ -712,6 +729,7 @@ export default function AdminCMS() {
                         >
                           <option value="limpeza_solar">Limpeza Técnica de Placas</option>
                           <option value="instalacao_manutencao">Instalação e Manutenção</option>
+                          <option value="automacao_residencial">Automação Residencial</option>
                           <option value="aquecimento_piso">Aquecimento de Piso Premium</option>
                           <option value="controle_acesso">Controle de Acesso</option>
                           <option value="ar_condicionado">Ar Condicionado</option>

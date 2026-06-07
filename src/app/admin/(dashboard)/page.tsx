@@ -12,6 +12,7 @@ import AdminCMS from '@/components/AdminCMS';
 const servicesList = [
   'Limpeza Técnica de Placas',
   'Instalação e Manutenção',
+  'Automação Residencial',
   'Aquecimento de Piso Premium',
   'Energia Solar',
   'Controle de Acesso',

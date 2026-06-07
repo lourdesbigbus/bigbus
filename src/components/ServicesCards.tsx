@@ -98,6 +98,7 @@ export default function ServicesCards({ data }: ServicesCardsProps) {
                     <span className="relative z-10">
                       {service.id === 'limpeza_solar' ? 'Calcular Perda' : 
                        service.id === 'instalacao_manutencao' ? 'Instalação' : 
+                       service.id === 'automacao_residencial' ? 'Automação' : 
                        service.id === 'aquecimento_piso' ? 'Aquecimento' : 
                        service.id === 'controle_acesso' ? 'Controle' : 'Climatização'}
                     </span>

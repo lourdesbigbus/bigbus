@@ -14,6 +14,13 @@ export const servicesConfig = [
     href: '/instalacao'
   },
   {
+    id: 'automacao_residencial',
+    title: 'Automação Residencial',
+    image: '/images/automacao_residencial.png',
+    icon: 'Cpu',
+    href: '/automacao-residencial'
+  },
+  {
     id: 'aquecimento_piso',
     title: 'Aquecimento de Piso Premium',
     image: '/images/aquecimento.png',
