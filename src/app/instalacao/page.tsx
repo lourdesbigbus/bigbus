@@ -48,7 +48,7 @@ export default async function InstalacaoPage() {
       </header>
 
       {/* Hero Section with Calculator */}
-      <section className="w-full pt-32 pb-12 overflow-hidden relative">
+      <section className="w-full pt-32 pb-0 overflow-hidden relative">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 -z-20">
           <img 

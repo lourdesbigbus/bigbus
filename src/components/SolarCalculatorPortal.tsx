@@ -94,7 +94,7 @@ export default function SolarCalculatorPortal() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-12 md:py-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+    <div className="w-full max-w-7xl mx-auto px-4 py-8 md:py-12 flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
 
       {/* ── Left: Branding ─────────────────────────────────────────────── */}
       <div className="flex-1 text-center lg:text-left space-y-8">

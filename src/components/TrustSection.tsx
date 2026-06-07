@@ -64,7 +64,7 @@ export default function TrustSection({ data }: TrustSectionProps) {
     : steps;
 
   return (
-    <section className="py-24 px-6 w-full max-w-7xl mx-auto">
+    <section className="py-16 px-6 w-full max-w-7xl mx-auto">
       <div className="bg-slate-950 rounded-[3.5rem] p-8 md:p-20 text-white relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-white/5">
         {/* Background Decor - Refined Glows */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand-emerald/20 blur-[120px] rounded-full animate-pulse-subtle" />

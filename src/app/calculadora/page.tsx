@@ -38,7 +38,7 @@ export default async function CalculadoraPage() {
         <ThemeToggle />
       </header>
 
-      <section className="w-full pt-32 pb-12 px-4 flex flex-col items-center">
+      <section className="w-full pt-32 pb-0 px-4 flex flex-col items-center">
         <div className="w-full max-w-6xl mb-8 relative z-10">
           <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-emerald transition-colors font-semibold text-sm">
             <ArrowLeft className="w-4 h-4" />
@@ -46,7 +46,7 @@ export default async function CalculadoraPage() {
           </Link>
         </div>
 
-        <div className="max-w-4xl text-center mb-10">
+        <div className="max-w-4xl text-center mb-0">
            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-emerald/10 text-brand-emerald text-xs font-bold uppercase tracking-widest mb-6 border border-brand-emerald/20 shadow-sm">
              <ShieldCheck className="w-4 h-4" /> Serviço Homologado Hubly Pro
            </div>

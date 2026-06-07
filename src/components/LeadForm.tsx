@@ -120,7 +120,7 @@ export default function LeadForm({ defaultService }: LeadFormProps) {
   }
 
   return (
-    <section id="lead-form" className="px-6 py-24 max-w-xl mx-auto w-full mb-16 z-10">
+    <section id="lead-form" className="px-6 py-16 max-w-xl mx-auto w-full mb-10 z-10">
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -130,7 +130,7 @@ export default function LeadForm({ defaultService }: LeadFormProps) {
       >
         <div className="absolute top-0 right-0 w-32 h-32 bg-brand-emerald/5 blur-3xl -z-10" />
         
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-montserrat font-black text-brand-navy dark:text-slate-100 uppercase tracking-tighter leading-tight">
             SOLICITAR <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-emerald to-emerald-400">ANÁLISE TÉCNICA</span> GRATUITA
           </h2>

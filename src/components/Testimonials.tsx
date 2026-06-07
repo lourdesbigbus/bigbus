@@ -88,8 +88,8 @@ export default function Testimonials({ serviceId, data }: TestimonialsProps) {
     : allTestimonials.filter(t => [1, 2, 3].includes(t.id) || allTestimonials.indexOf(t) < 3); // Mostra os 3 principais na home
 
   return (
-    <section className="py-24 px-6 w-full max-w-7xl mx-auto z-10 relative">
-      <div className="text-center mb-20">
+    <section className="py-16 px-6 w-full max-w-7xl mx-auto z-10 relative">
+      <div className="text-center mb-12">
 
         <h2 className="text-3xl md:text-5xl font-montserrat font-black text-brand-navy dark:text-slate-100 mb-6 uppercase tracking-tighter leading-tight">
           O QUE NOSSOS <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-emerald to-emerald-400">CLIENTES</span> DIZEM
