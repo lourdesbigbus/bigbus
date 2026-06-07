@@ -48,7 +48,7 @@ export default async function InstalacaoPage() {
       </header>
 
       {/* Hero Section with Calculator */}
-      <section className="w-full pt-20 pb-12 overflow-hidden relative">
+      <section className="w-full pt-32 pb-12 overflow-hidden relative">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 -z-20">
           <img 
@@ -64,7 +64,7 @@ export default async function InstalacaoPage() {
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-orange rounded-full" />
         </div>
         
-        <div className="w-full max-w-7xl mx-auto px-4 mb-8">
+        <div className="w-full max-w-7xl mx-auto px-4 mb-8 relative z-10">
           <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-emerald transition-colors font-semibold text-sm">
             <ArrowLeft className="w-4 h-4" />
             Voltar para a Home

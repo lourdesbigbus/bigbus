@@ -38,8 +38,8 @@ export default async function CalculadoraPage() {
         <ThemeToggle />
       </header>
 
-      <section className="w-full pt-16 pb-12 px-4 flex flex-col items-center">
-        <div className="w-full max-w-6xl mb-8">
+      <section className="w-full pt-32 pb-12 px-4 flex flex-col items-center">
+        <div className="w-full max-w-6xl mb-8 relative z-10">
           <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-emerald transition-colors font-semibold text-sm">
             <ArrowLeft className="w-4 h-4" />
             Voltar para a Home
