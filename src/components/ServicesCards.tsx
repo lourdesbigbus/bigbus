@@ -32,7 +32,18 @@ interface ServicesCardsProps {
 }
 
 export default function ServicesCards({ data }: ServicesCardsProps) {
-  const services = (data || servicesConfig).filter(s => !(s as any).hidden);
+  let services = servicesConfig;
+  if (data && Array.isArray(data)) {
+    const merged = [...data];
+    servicesConfig.forEach(defS => {
+      if (!merged.some(s => s.id === defS.id)) {
+        merged.push(defS);
+      }
+    });
+    services = merged;
+  }
+
+  const activeServices = services.filter(s => !(s as any).hidden);
 
   return (
     <section className="w-full relative z-10">
@@ -50,7 +61,7 @@ export default function ServicesCards({ data }: ServicesCardsProps) {
           <div className="w-12 h-1 bg-brand-emerald rounded-full" />
         </div>
 
-        {services.map((service, index) => (
+        {activeServices.map((service, index) => (
           <motion.div 
             variants={item}
             key={service.id} 

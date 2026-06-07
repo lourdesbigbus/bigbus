@@ -30,7 +30,14 @@ export default function LeadForm({ defaultService }: LeadFormProps) {
       try {
         const res = await getSiteSettingsAction('services');
         if (res.success && Array.isArray(res.data)) {
-          setServices(res.data);
+          const dbServices = res.data;
+          const merged = [...dbServices];
+          servicesConfig.forEach(defS => {
+            if (!merged.some(s => s.id === defS.id)) {
+              merged.push(defS);
+            }
+          });
+          setServices(merged);
         }
       } catch (err) {
         console.error('Erro ao buscar serviços no formulário:', err);
