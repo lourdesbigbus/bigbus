@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, ShieldCheck, Zap, ArrowRight } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import TrustSection from '@/components/TrustSection';
+import EVCalculator from '@/components/EVCalculator';
 import Testimonials from '@/components/Testimonials';
 import LeadForm from '@/components/LeadForm';
 import Footer from '@/components/Footer';
@@ -77,6 +78,8 @@ export default async function CarregamentoVeicularPage() {
            </div>
          </div>
       </section>
+
+      <EVCalculator />
 
       <TrustSection data={settings?.trust} />
       
