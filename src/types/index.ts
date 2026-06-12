@@ -25,4 +25,6 @@ export interface Lead {
   solar_inversor?: string;
   solar_paineis?: number;
   solar_protocolo?: string;
+  solar_prazo_etapa?: string;    // data limite da etapa atual (YYYY-MM-DD)
+  solar_pendencia?: string;      // descrição de pendência ou próxima ação
 }

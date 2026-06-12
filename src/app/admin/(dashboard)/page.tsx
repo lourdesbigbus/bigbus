@@ -264,6 +264,24 @@ function DashboardContent() {
     .sort((a, b) => new Date(a.data_proximo_contato!).getTime() - new Date(b.data_proximo_contato!).getTime())
     .slice(0, 5);
 
+  // Alertas de Projetos Solares para o Dashboard
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const solarAlerts = leads
+    .filter(l => l.servico?.toLowerCase().includes('solar') || l.servico === 'Energia Solar')
+    .filter(l => {
+      if (l.solar_pendencia) return true;
+      if (!l.solar_prazo_etapa) return false;
+      const due = new Date(l.solar_prazo_etapa + 'T00:00:00');
+      const diff = Math.round((due.getTime() - today.getTime()) / 86400000);
+      return diff <= 3; // vence em até 3 dias ou atrasado
+    })
+    .sort((a, b) => {
+      const dA = a.solar_prazo_etapa ? new Date(a.solar_prazo_etapa + 'T00:00:00').getTime() : Infinity;
+      const dB = b.solar_prazo_etapa ? new Date(b.solar_prazo_etapa + 'T00:00:00').getTime() : Infinity;
+      return dA - dB;
+    })
+    .slice(0, 6);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Pendente': return 'bg-orange-50 text-orange-600 border-orange-200';
@@ -448,6 +466,61 @@ function DashboardContent() {
               )}
             </div>
           </div>
+
+          {/* Alertas de Projetos Solares */}
+          {solarAlerts.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 bg-amber-100 border border-amber-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm">⚠️</span>
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-amber-900">Alertas — Projetos Solares</h2>
+                    <p className="text-[11px] text-amber-600">{solarAlerts.length} projeto(s) com prazo crítico ou pendência ativa</p>
+                  </div>
+                </div>
+                <a href="/admin?tab=projetos-solares" className="text-[10px] font-bold text-amber-700 border border-amber-300 bg-white px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-all">
+                  Ver todos →
+                </a>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                {solarAlerts.map(l => {
+                  const prazo = (() => {
+                    if (!l.solar_prazo_etapa) return null;
+                    const due = new Date(l.solar_prazo_etapa + 'T00:00:00');
+                    const todayMs = new Date(); todayMs.setHours(0,0,0,0);
+                    const diff = Math.round((due.getTime() - todayMs.getTime()) / 86400000);
+                    if (diff < 0)  return { text: `${Math.abs(diff)}d atrasado`, cls: 'text-red-700 bg-red-50 border-red-200' };
+                    if (diff === 0) return { text: 'Vence hoje!',          cls: 'text-red-700 bg-red-50 border-red-200' };
+                    return           { text: `Vence em ${diff}d`,          cls: 'text-orange-700 bg-orange-50 border-orange-200' };
+                  })();
+                  return (
+                    <div key={l.id} className="bg-white border border-amber-100 rounded-lg p-3 flex flex-col gap-1.5 hover:border-amber-300 hover:shadow-sm transition-all cursor-pointer" onClick={() => setSelectedLead(l)}>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-xs font-bold text-slate-800 leading-tight truncate">{l.nome}</p>
+                        {prazo && (
+                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border flex-shrink-0 ${prazo.cls}`}>{prazo.text}</span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-500 font-semibold">{l.projeto_solar_etapa || 'Dimensionamento'}</p>
+                      {l.solar_pendencia && (
+                        <p className="text-[10px] text-amber-700 bg-amber-50 rounded px-1.5 py-0.5 border border-amber-100 leading-tight">⚠ {l.solar_pendencia}</p>
+                      )}
+                      <a
+                        href={`https://wa.me/${l.whatsapp.replace(/\D/g, '')}`}
+                        target="_blank" rel="noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-800 mt-0.5"
+                      >
+                        <MessageCircle className="w-3 h-3" /> {l.whatsapp}
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Performance & Agenda Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

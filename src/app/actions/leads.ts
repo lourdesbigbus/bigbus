@@ -139,7 +139,9 @@ export async function updateLeadDetailsAction(lead: Lead) {
         solar_kwp: lead.solar_kwp,
         solar_inversor: lead.solar_inversor,
         solar_paineis: lead.solar_paineis,
-        solar_protocolo: lead.solar_protocolo
+        solar_protocolo: lead.solar_protocolo,
+        solar_prazo_etapa: lead.solar_prazo_etapa,
+        solar_pendencia: lead.solar_pendencia
       })
       .eq('id', lead.id)
       .select()
