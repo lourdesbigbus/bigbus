@@ -2,7 +2,7 @@ import Hero from '@/components/Hero';
 import TrustSection from '@/components/TrustSection';
 import ServicesCards from '@/components/ServicesCards';
 import InteractiveHouse from '@/components/InteractiveHouse';
-import Testimonials from '@/components/Testimonials';
+import GaleriaSection from '@/components/GaleriaSection';
 import LeadForm from '@/components/LeadForm';
 import Footer from '@/components/Footer';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -50,7 +50,7 @@ export default async function Home() {
         <TrustSection data={settings?.trust} />
       </div>
       
-      <Testimonials data={settings?.testimonials} />
+      <GaleriaSection />
       <LeadForm />
       <Footer />
     </main>

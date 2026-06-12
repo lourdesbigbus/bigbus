@@ -28,3 +28,16 @@ export interface Lead {
   solar_prazo_etapa?: string;    // data limite da etapa atual (YYYY-MM-DD)
   solar_pendencia?: string;      // descrição de pendência ou próxima ação
 }
+
+export interface GaleriaItem {
+  id: string;
+  created_at: string;
+  tipo: 'foto' | 'depoimento' | 'ambos';
+  servico: string;           // 'geral' ou nome do serviço
+  cliente_nome: string;
+  cliente_cidade?: string;
+  avaliacao: number;         // 1-5
+  texto?: string;            // texto do depoimento
+  foto_url?: string;         // URL externa da foto
+  ativo: boolean;
+}

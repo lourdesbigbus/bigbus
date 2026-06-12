@@ -9,7 +9,8 @@ import { useSearchParams } from 'next/navigation';
 import AdminCMS from '@/components/AdminCMS';
 import AdminSecurity from '@/components/AdminSecurity';
 import AdminSolarProjects from '@/components/AdminSolarProjects';
-import { Sun } from 'lucide-react';
+import AdminGaleria from '@/components/AdminGaleria';
+import { Sun, Images } from 'lucide-react';
 
 // Lista de Serviços Padrão para uso nos formulários do CRM
 const servicesList = [
@@ -337,6 +338,12 @@ function DashboardContent() {
               <p className="text-xs text-slate-500 mt-1">Gerencie o progresso das instalações solares ao longo de 8 etapas.</p>
             </>
           )}
+          {activeTab === 'galeria' && (
+            <>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight">Galeria &amp; Depoimentos</h1>
+              <p className="text-xs text-slate-500 mt-1">Adicione fotos reais e depoimentos que aparecem no site.</p>
+            </>
+          )}
         </div>
 
         {/* Botões Operacionais (Apenas na aba Leads) */}
@@ -609,6 +616,11 @@ function DashboardContent() {
           onSaveLeadDetails={handleSaveLeadDetails}
           onOpenLeadDetails={setSelectedLead}
         />
+      )}
+
+      {/* VIEW: GALERIA & DEPOIMENTOS */}
+      {activeTab === 'galeria' && (
+        <AdminGaleria />
       )}
 
       {/* VIEW: GESTÃO OPERACIONAL DE LEADS */}
