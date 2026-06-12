@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Lead } from '@/types';
-import { Sun, MapPin, ChevronLeft, ChevronRight, Settings, Phone, Calendar, ClipboardCheck } from 'lucide-react';
+import { Sun, ChevronLeft, ChevronRight, Save, X, Edit3, MessageCircle, Check } from 'lucide-react';
 
 interface AdminSolarProjectsProps {
   leads: Lead[];
@@ -11,196 +11,300 @@ interface AdminSolarProjectsProps {
 }
 
 const SOLAR_STAGES = [
-  { key: 'Dimensionamento', label: '1. Dimensionamento', desc: 'Estudo de consumo e viabilidade', border: 'border-t-orange-500', bg: 'bg-orange-50/50' },
-  { key: 'Projeto', label: '2. Elaboração do Projeto', desc: 'Engenharia de diagramas elétricos', border: 'border-t-blue-500', bg: 'bg-blue-50/50' },
-  { key: 'Homologação', label: '3. Homologação (Filing)', desc: 'Documentos na concessionária', border: 'border-t-purple-500', bg: 'bg-purple-50/50' },
-  { key: 'Logística', label: '4. Logística de Materiais', desc: 'Envio de painéis e inversor', border: 'border-t-pink-500', bg: 'bg-pink-50/50' },
-  { key: 'Instalação', label: '5. Instalação Física', desc: 'Montagem mecânica e elétrica', border: 'border-t-yellow-500', bg: 'bg-yellow-50/50' },
-  { key: 'Vistoria', label: '6. Vistoria Concessionária', desc: 'Inspeção física local da rede', border: 'border-t-teal-500', bg: 'bg-teal-50/50' },
-  { key: 'Medidor', label: '7. Troca do Medidor', desc: 'Instalação do relógio bidirecional', border: 'border-t-indigo-500', bg: 'bg-indigo-50/50' },
-  { key: 'Ativado', label: '8. Sistema Ativado', desc: 'Geração solar ativa injetando na rede', border: 'border-t-emerald-500', bg: 'bg-emerald-50/50' }
+  { key: 'Dimensionamento', label: '1. Dimensionamento',    color: 'bg-orange-100 text-orange-700 border-orange-300' },
+  { key: 'Projeto',         label: '2. Projeto Elétrico',   color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { key: 'Homologação',     label: '3. Homologação',        color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  { key: 'Logística',       label: '4. Logística',          color: 'bg-pink-100 text-pink-700 border-pink-300' },
+  { key: 'Instalação',      label: '5. Instalação Física',  color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+  { key: 'Vistoria',        label: '6. Vistoria',           color: 'bg-teal-100 text-teal-700 border-teal-300' },
+  { key: 'Medidor',         label: '7. Troca do Medidor',   color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  { key: 'Ativado',         label: '8. Ativado ✓',          color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
 ];
 
+function getStageColor(key?: string) {
+  const s = SOLAR_STAGES.find(s => s.key === (key || 'Dimensionamento'));
+  return s ? s.color : 'bg-slate-100 text-slate-600 border-slate-300';
+}
+
+function getStageLabel(key?: string) {
+  const s = SOLAR_STAGES.find(s => s.key === (key || 'Dimensionamento'));
+  return s ? s.label : '1. Dimensionamento';
+}
+
+function getStageIndex(key?: string) {
+  const idx = SOLAR_STAGES.findIndex(s => s.key === (key || 'Dimensionamento'));
+  return idx >= 0 ? idx : 0;
+}
+
 export default function AdminSolarProjects({ leads, onSaveLeadDetails, onOpenLeadDetails }: AdminSolarProjectsProps) {
-  // Filtrar apenas leads que são do serviço de Energia Solar
   const solarLeads = leads.filter(l => l.servico === 'Energia Solar');
 
-  const getLeadStage = (lead: Lead) => {
-    return lead.projeto_solar_etapa || 'Dimensionamento';
+  // Linha em edição inline
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editRow, setEditRow] = useState<Lead | null>(null);
+
+  const startEdit = (lead: Lead) => {
+    setEditingId(lead.id);
+    setEditRow({ ...lead });
   };
 
-  const moveLeadStage = (lead: Lead, direction: 'forward' | 'backward') => {
-    const currentStage = getLeadStage(lead);
-    const currentIndex = SOLAR_STAGES.findIndex(s => s.key === currentStage);
-    
-    let nextIndex = currentIndex;
-    if (direction === 'forward' && currentIndex < SOLAR_STAGES.length - 1) {
-      nextIndex = currentIndex + 1;
-    } else if (direction === 'backward' && currentIndex > 0) {
-      nextIndex = currentIndex - 1;
-    }
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditRow(null);
+  };
 
-    if (nextIndex !== currentIndex) {
-      const updatedLead: Lead = {
-        ...lead,
-        projeto_solar_etapa: SOLAR_STAGES[nextIndex].key
-      };
-      onSaveLeadDetails(updatedLead);
+  const saveEdit = () => {
+    if (editRow) {
+      onSaveLeadDetails(editRow);
+      setEditingId(null);
+      setEditRow(null);
     }
   };
 
-  const getTempBorder = (temp?: string) => {
-    switch (temp) {
-      case 'Quente': return 'border-l-4 border-l-red-500';
-      case 'Frio': return 'border-l-4 border-l-sky-400';
-      case 'Morno':
-      default: return 'border-l-4 border-l-amber-500';
+  const moveStage = (lead: Lead, dir: 'forward' | 'backward') => {
+    const idx = getStageIndex(lead.projeto_solar_etapa);
+    const next = dir === 'forward' ? Math.min(idx + 1, 7) : Math.max(idx - 1, 0);
+    if (next !== idx) {
+      onSaveLeadDetails({ ...lead, projeto_solar_etapa: SOLAR_STAGES[next].key });
     }
   };
+
+  const kpis = [
+    { label: 'Projetos em Andamento', value: solarLeads.filter(l => l.projeto_solar_etapa !== 'Ativado').length, color: 'text-blue-600', border: 'border-t-blue-500' },
+    { label: 'Capacidade Total (kWp)', value: `${solarLeads.reduce((a, l) => a + (l.solar_kwp || 0), 0).toFixed(1)} kWp`, color: 'text-emerald-600', border: 'border-t-emerald-500' },
+    { label: 'Em Homologação/Vistoria', value: solarLeads.filter(l => ['Homologação', 'Vistoria'].includes(l.projeto_solar_etapa || '')).length, color: 'text-purple-600', border: 'border-t-purple-500' },
+    { label: 'Sistemas Ativados', value: solarLeads.filter(l => l.projeto_solar_etapa === 'Ativado').length, color: 'text-emerald-700', border: 'border-t-emerald-600' },
+  ];
+
+  const inputCls = "w-full py-1 px-2 text-xs border border-slate-300 rounded focus:outline-none focus:border-emerald-500 bg-white text-slate-800 font-medium";
 
   return (
-    <div className="space-y-4">
-      {/* KPI bar specifically for solar */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Projetos Solares Ativos</span>
-          <span className="text-xl font-black text-slate-800">{solarLeads.filter(l => getLeadStage(l) !== 'Ativado').length}</span>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Capacidade Total Instalada</span>
-          <span className="text-xl font-black text-brand-emerald">
-            {solarLeads.reduce((acc, l) => acc + (l.solar_kwp || 0), 0).toFixed(1)} kWp
-          </span>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Em Homologação/Vistoria</span>
-          <span className="text-xl font-black text-purple-500">
-            {solarLeads.filter(l => ['Homologação', 'Vistoria'].includes(getLeadStage(l))).length}
-          </span>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Sistemas Conectados (Ativados)</span>
-          <span className="text-xl font-black text-emerald-600">
-            {solarLeads.filter(l => getLeadStage(l) === 'Ativado').length}
-          </span>
-        </div>
+    <div className="space-y-5">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map(k => (
+          <div key={k.label} className={`bg-white rounded-xl border border-slate-200 border-t-4 ${k.border} shadow-sm p-4`}>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{k.label}</p>
+            <p className={`text-2xl font-black ${k.color}`}>{k.value}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Horizontal Pipeline Board */}
-      <div className="w-full overflow-x-auto pb-6">
-        <div className="flex gap-4 min-w-[2240px]">
-          {SOLAR_STAGES.map((stage, stageIdx) => {
-            const stageLeads = solarLeads.filter(l => getLeadStage(l) === stage.key);
-            
-            return (
-              <div 
-                key={stage.key} 
-                className={`w-72 flex-shrink-0 bg-slate-100/60 dark:bg-slate-900/10 rounded-xl p-3 border-t-4 ${stage.border} border-x border-b border-slate-200 dark:border-slate-800/80 flex flex-col min-h-[500px]`}
-              >
-                {/* Stage Header */}
-                <div className="mb-3 flex flex-col justify-between">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-tight truncate max-w-[80%]">
-                      {stage.label}
-                    </h3>
-                    <span className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
-                      {stageLeads.length}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5 truncate leading-tight">
-                    {stage.desc}
-                  </p>
-                </div>
+      {/* Planilha */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        {solarLeads.length === 0 ? (
+          <div className="py-24 text-center">
+            <Sun className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+            <p className="text-slate-400 text-sm font-medium">Nenhum lead com serviço "Energia Solar" cadastrado ainda.</p>
+            <p className="text-slate-300 text-xs mt-1">Cadastre um lead e selecione "Energia Solar" como serviço.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse" style={{ minWidth: '1100px' }}>
+              <thead>
+                <tr className="bg-slate-50 border-b-2 border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  <th className="px-4 py-3 w-[200px]">Cliente</th>
+                  <th className="px-4 py-3 w-[120px]">WhatsApp</th>
+                  <th className="px-4 py-3 w-[130px]">Localização</th>
+                  <th className="px-4 py-3 w-[80px] text-center">kWp</th>
+                  <th className="px-4 py-3 w-[80px] text-center">Painéis</th>
+                  <th className="px-4 py-3 w-[140px]">Inversor</th>
+                  <th className="px-4 py-3 w-[150px]">Protocolo</th>
+                  <th className="px-4 py-3 w-[200px] text-center">Etapa da Instalação</th>
+                  <th className="px-4 py-3 w-[110px] text-right">Investimento</th>
+                  <th className="px-4 py-3 w-[80px] text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {solarLeads.map((lead, idx) => {
+                  const isEditing = editingId === lead.id;
+                  const row = isEditing ? editRow! : lead;
+                  const stageIdx = getStageIndex(lead.projeto_solar_etapa);
 
-                {/* Cards Container */}
-                <div className="flex-1 space-y-3 overflow-y-auto max-h-[520px] pr-1">
-                  {stageLeads.length === 0 ? (
-                    <div className="h-24 border border-dashed border-slate-200 dark:border-slate-800 rounded-lg flex items-center justify-center text-[10px] text-slate-400 dark:text-slate-600 italic">
-                      Nenhum projeto
-                    </div>
-                  ) : (
-                    stageLeads.map((lead) => (
-                      <div 
-                        key={lead.id} 
-                        onClick={() => onOpenLeadDetails(lead)}
-                        className={`bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/85 dark:border-slate-800/85 hover:border-brand-emerald hover:shadow-md cursor-pointer transition-all ${getTempBorder(lead.temperatura)}`}
-                      >
-                        {/* Name and State */}
-                        <div className="flex justify-between items-start mb-1.5">
-                          <p className="text-xs font-black text-slate-800 dark:text-white leading-tight">
-                            {lead.nome}
-                          </p>
-                          <span className={`inline-block text-[8px] font-black px-1.5 py-0.5 rounded border border-emerald-200/50 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter`}>
-                            {lead.status}
-                          </span>
-                        </div>
-
-                        {/* Location */}
-                        <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-2.5">
-                          <MapPin className="w-3 h-3 text-slate-400" />
-                          <span className="truncate">{lead.localizacao || 'Não informada'}</span>
-                        </div>
-
-                        {/* Solar specs */}
-                        {(lead.solar_kwp || lead.solar_paineis) ? (
-                          <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/10 p-2 rounded-lg text-[10px] font-semibold text-slate-700 dark:text-slate-300 mb-2.5 flex items-center justify-between">
-                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-black">
-                              <Sun className="w-3 h-3" />
-                              {lead.solar_kwp ? `${lead.solar_kwp.toFixed(1)} kWp` : '—'}
-                            </span>
-                            <span className="text-slate-400">|</span>
-                            <span>{lead.solar_paineis ? `${lead.solar_paineis} painéis` : '—'}</span>
-                          </div>
-                        ) : null}
-
-                        {/* Protocol Info */}
-                        {lead.solar_protocolo && (
-                          <div className="flex items-center gap-1 text-[9px] text-slate-400 dark:text-slate-500 font-mono mb-2.5 leading-none">
-                            <ClipboardCheck className="w-3 h-3 text-slate-400" />
-                            <span className="truncate" title={lead.solar_protocolo}>Prot: {lead.solar_protocolo}</span>
+                  return (
+                    <tr
+                      key={lead.id}
+                      className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'} hover:bg-emerald-50/30 transition-colors ${isEditing ? 'bg-yellow-50/60 ring-1 ring-inset ring-yellow-300' : ''}`}
+                    >
+                      {/* Cliente */}
+                      <td className="px-4 py-2.5">
+                        {isEditing ? (
+                          <input className={inputCls} value={editRow!.nome} onChange={e => setEditRow({ ...editRow!, nome: e.target.value })} />
+                        ) : (
+                          <div>
+                            <p className="text-xs font-bold text-slate-800 leading-tight">{lead.nome}</p>
+                            {lead.email && <p className="text-[10px] text-slate-400 truncate max-w-[180px]">📧 {lead.email}</p>}
                           </div>
                         )}
+                      </td>
 
-                        {/* Next Action / Contacts */}
-                        <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800/80 pt-2.5 mt-2">
-                          <div className="text-left">
-                            <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Investimento</p>
-                            <p className="font-mono text-[10px] font-black text-slate-700 dark:text-slate-300">
-                              R$ {(lead.valor_fechado || lead.valor_proposta || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                            </p>
-                          </div>
-                          
-                          {/* Quick Navigation Controls */}
-                          <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                      {/* WhatsApp */}
+                      <td className="px-4 py-2.5">
+                        {isEditing ? (
+                          <input className={inputCls} value={editRow!.whatsapp} onChange={e => setEditRow({ ...editRow!, whatsapp: e.target.value })} />
+                        ) : (
+                          <a href={`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[11px] text-emerald-600 hover:text-emerald-800 font-mono font-semibold group" onClick={e => e.stopPropagation()}>
+                            <MessageCircle className="w-3 h-3 opacity-70 group-hover:opacity-100" />
+                            {lead.whatsapp}
+                          </a>
+                        )}
+                      </td>
+
+                      {/* Localização */}
+                      <td className="px-4 py-2.5">
+                        {isEditing ? (
+                          <input className={inputCls} value={editRow!.localizacao || ''} onChange={e => setEditRow({ ...editRow!, localizacao: e.target.value })} placeholder="Cidade/UF" />
+                        ) : (
+                          <span className="text-xs text-slate-600 font-medium">{lead.localizacao || <span className="text-slate-300">—</span>}</span>
+                        )}
+                      </td>
+
+                      {/* kWp */}
+                      <td className="px-4 py-2.5 text-center">
+                        {isEditing ? (
+                          <input type="number" step="0.01" className={inputCls + " text-center"} value={editRow!.solar_kwp || ''} onChange={e => setEditRow({ ...editRow!, solar_kwp: e.target.value ? Number(e.target.value) : undefined })} placeholder="0.00" />
+                        ) : (
+                          <span className="text-xs font-bold text-emerald-700 font-mono">
+                            {lead.solar_kwp ? `${lead.solar_kwp} kWp` : <span className="text-slate-300 font-normal">—</span>}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Painéis */}
+                      <td className="px-4 py-2.5 text-center">
+                        {isEditing ? (
+                          <input type="number" className={inputCls + " text-center"} value={editRow!.solar_paineis || ''} onChange={e => setEditRow({ ...editRow!, solar_paineis: e.target.value ? Number(e.target.value) : undefined })} placeholder="0" />
+                        ) : (
+                          <span className="text-xs font-bold text-slate-700 font-mono">
+                            {lead.solar_paineis ? `${lead.solar_paineis}` : <span className="text-slate-300 font-normal">—</span>}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Inversor */}
+                      <td className="px-4 py-2.5">
+                        {isEditing ? (
+                          <input className={inputCls} value={editRow!.solar_inversor || ''} onChange={e => setEditRow({ ...editRow!, solar_inversor: e.target.value })} placeholder="Ex: Deye 5kW" />
+                        ) : (
+                          <span className="text-xs text-slate-600 font-medium">{lead.solar_inversor || <span className="text-slate-300">—</span>}</span>
+                        )}
+                      </td>
+
+                      {/* Protocolo */}
+                      <td className="px-4 py-2.5">
+                        {isEditing ? (
+                          <input className={inputCls + " font-mono"} value={editRow!.solar_protocolo || ''} onChange={e => setEditRow({ ...editRow!, solar_protocolo: e.target.value })} placeholder="N° protocolo" />
+                        ) : (
+                          <span className="text-[11px] text-slate-500 font-mono">{lead.solar_protocolo || <span className="text-slate-300">—</span>}</span>
+                        )}
+                      </td>
+
+                      {/* Etapa */}
+                      <td className="px-4 py-2.5">
+                        {isEditing ? (
+                          <select
+                            className={inputCls + " font-semibold"}
+                            value={editRow!.projeto_solar_etapa || 'Dimensionamento'}
+                            onChange={e => setEditRow({ ...editRow!, projeto_solar_etapa: e.target.value })}
+                          >
+                            {SOLAR_STAGES.map(s => (
+                              <option key={s.key} value={s.key}>{s.label}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
                             <button
                               disabled={stageIdx === 0}
-                              onClick={() => moveLeadStage(lead, 'backward')}
-                              className={`p-1.5 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all ${
-                                stageIdx === 0 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
-                              }`}
+                              onClick={() => moveStage(lead, 'backward')}
+                              className="p-1 rounded bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition-all disabled:opacity-20 disabled:cursor-not-allowed flex-shrink-0"
                               title="Recuar etapa"
                             >
                               <ChevronLeft className="w-3 h-3" />
                             </button>
+                            <span className={`flex-1 text-center text-[10px] font-bold px-1.5 py-1 rounded border ${getStageColor(lead.projeto_solar_etapa)} whitespace-nowrap`}>
+                              {getStageLabel(lead.projeto_solar_etapa)}
+                            </span>
                             <button
-                              disabled={stageIdx === SOLAR_STAGES.length - 1}
-                              onClick={() => moveLeadStage(lead, 'forward')}
-                              className={`p-1.5 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all ${
-                                stageIdx === SOLAR_STAGES.length - 1 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
-                              }`}
+                              disabled={stageIdx === 7}
+                              onClick={() => moveStage(lead, 'forward')}
+                              className="p-1 rounded bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition-all disabled:opacity-20 disabled:cursor-not-allowed flex-shrink-0"
                               title="Avançar etapa"
                             >
                               <ChevronRight className="w-3 h-3" />
                             </button>
                           </div>
+                        )}
+                      </td>
+
+                      {/* Investimento */}
+                      <td className="px-4 py-2.5 text-right">
+                        {isEditing ? (
+                          <input type="number" className={inputCls + " text-right font-mono"} value={editRow!.valor_fechado || editRow!.valor_proposta || ''} onChange={e => setEditRow({ ...editRow!, valor_proposta: e.target.value ? Number(e.target.value) : undefined })} placeholder="0" />
+                        ) : (
+                          <span className="text-xs font-bold font-mono text-slate-700">
+                            {(lead.valor_fechado || lead.valor_proposta) ? `R$ ${(lead.valor_fechado || lead.valor_proposta || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}` : <span className="text-slate-300 font-normal">—</span>}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Ações */}
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {isEditing ? (
+                            <>
+                              <button
+                                onClick={saveEdit}
+                                className="p-1.5 rounded bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm"
+                                title="Salvar"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                className="p-1.5 rounded bg-slate-200 text-slate-600 hover:bg-slate-300 transition-all"
+                                title="Cancelar"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => startEdit(lead)}
+                                className="p-1.5 rounded bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-all"
+                                title="Editar linha"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => onOpenLeadDetails(lead)}
+                                className="p-1.5 rounded bg-blue-50 border border-blue-200 text-blue-500 hover:bg-blue-100 transition-all"
+                                title="Abrir modal completo"
+                              >
+                                <Sun className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          )}
                         </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Legenda das etapas */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Legenda — Etapas do Projeto Solar</p>
+        <div className="flex flex-wrap gap-2">
+          {SOLAR_STAGES.map(s => (
+            <span key={s.key} className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${s.color}`}>
+              {s.label}
+            </span>
+          ))}
         </div>
       </div>
     </div>
