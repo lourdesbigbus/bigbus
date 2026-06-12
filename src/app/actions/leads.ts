@@ -134,7 +134,12 @@ export async function updateLeadDetailsAction(lead: Lead) {
         temperatura: lead.temperatura,
         motivo_perda: lead.motivo_perda,
         data_proximo_contato: lead.data_proximo_contato,
-        status: lead.status
+        status: lead.status,
+        projeto_solar_etapa: lead.projeto_solar_etapa,
+        solar_kwp: lead.solar_kwp,
+        solar_inversor: lead.solar_inversor,
+        solar_paineis: lead.solar_paineis,
+        solar_protocolo: lead.solar_protocolo
       })
       .eq('id', lead.id)
       .select()

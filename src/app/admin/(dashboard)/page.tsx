@@ -8,6 +8,8 @@ import { MessageCircle, Download, Filter, Plus, MoreHorizontal, Search, LayoutGr
 import { useSearchParams } from 'next/navigation';
 import AdminCMS from '@/components/AdminCMS';
 import AdminSecurity from '@/components/AdminSecurity';
+import AdminSolarProjects from '@/components/AdminSolarProjects';
+import { Sun } from 'lucide-react';
 
 // Lista de Serviços Padrão para uso nos formulários do CRM
 const servicesList = [
@@ -311,6 +313,12 @@ function DashboardContent() {
               <p className="text-xs text-slate-500 mt-1">Edite textos e imagens da landing page principal.</p>
             </>
           )}
+          {activeTab === 'projetos-solares' && (
+            <>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight">Acompanhamento de Projetos Solares</h1>
+              <p className="text-xs text-slate-500 mt-1">Gerencie o progresso das instalações solares ao longo de 8 etapas.</p>
+            </>
+          )}
         </div>
 
         {/* Botões Operacionais (Apenas na aba Leads) */}
@@ -519,6 +527,15 @@ function DashboardContent() {
       {/* VIEW: CONFIGURAÇÕES DE SEGURANÇA */}
       {activeTab === 'configuracoes' && (
         <AdminSecurity />
+      )}
+
+      {/* VIEW: PROJETOS SOLARES */}
+      {activeTab === 'projetos-solares' && (
+        <AdminSolarProjects 
+          leads={leads}
+          onSaveLeadDetails={handleSaveLeadDetails}
+          onOpenLeadDetails={setSelectedLead}
+        />
       )}
 
       {/* VIEW: GESTÃO OPERACIONAL DE LEADS */}
@@ -888,6 +905,79 @@ function DashboardContent() {
                         />
                       </div>
                     </div>
+
+                    {selectedLead.servico === 'Energia Solar' && (
+                      <div className="bg-emerald-50/40 dark:bg-slate-800/40 p-4 rounded-xl border border-emerald-100 dark:border-slate-800/80 space-y-4">
+                        <h4 className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-1.5">
+                          <Sun className="w-3.5 h-3.5 text-emerald-500" /> Dados de Engenharia Solar
+                        </h4>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Potência do Sistema (kWp)</label>
+                            <input 
+                              type="number"
+                              step="0.01"
+                              placeholder="Ex: 5.40"
+                              value={selectedLead.solar_kwp || ''}
+                              onChange={(e) => setSelectedLead({...selectedLead, solar_kwp: e.target.value ? Number(e.target.value) : undefined})}
+                              className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 dark:text-white font-semibold bg-white dark:bg-slate-900"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Qtd de Painéis</label>
+                            <input 
+                              type="number"
+                              placeholder="Ex: 10"
+                              value={selectedLead.solar_paineis || ''}
+                              onChange={(e) => setSelectedLead({...selectedLead, solar_paineis: e.target.value ? Number(e.target.value) : undefined})}
+                              className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 dark:text-white font-semibold bg-white dark:bg-slate-900"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Marca/Modelo Inversor</label>
+                            <input 
+                              type="text"
+                              placeholder="Ex: Deye 5kW"
+                              value={selectedLead.solar_inversor || ''}
+                              onChange={(e) => setSelectedLead({...selectedLead, solar_inversor: e.target.value})}
+                              className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 dark:text-white font-medium bg-white dark:bg-slate-900"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Protocolo Homologação</label>
+                            <input 
+                              type="text"
+                              placeholder="Protocolo da Concessionária"
+                              value={selectedLead.solar_protocolo || ''}
+                              onChange={(e) => setSelectedLead({...selectedLead, solar_protocolo: e.target.value})}
+                              className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald text-slate-800 dark:text-white font-mono font-medium bg-white dark:bg-slate-900"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Etapa de Instalação Solar</label>
+                          <select 
+                            value={selectedLead.projeto_solar_etapa || 'Dimensionamento'}
+                            onChange={(e) => setSelectedLead({...selectedLead, projeto_solar_etapa: e.target.value})}
+                            className="w-full py-1.5 px-3 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-brand-emerald bg-white dark:bg-slate-900 font-bold text-slate-700 dark:text-slate-200"
+                          >
+                            <option value="Dimensionamento">1. Dimensionamento / Viabilidade</option>
+                            <option value="Projeto">2. Elaboração do Projeto (Engenharia)</option>
+                            <option value="Homologação">3. Entrada de Homologação</option>
+                            <option value="Logística">4. Logística de Equipamentos</option>
+                            <option value="Instalação">5. Instalação Física (Montagem)</option>
+                            <option value="Vistoria">6. Vistoria Técnica Concessionária</option>
+                            <option value="Medidor">7. Troca do Medidor</option>
+                            <option value="Ativado">8. Sistema Ativado (Conectado)</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
 
                     <div>
                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Serviço de Interesse</label>

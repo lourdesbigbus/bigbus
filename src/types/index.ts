@@ -20,4 +20,9 @@ export interface Lead {
   motivo_perda?: string;
   data_proximo_contato?: string;
   origem?: string;
+  projeto_solar_etapa?: string;
+  solar_kwp?: number;
+  solar_inversor?: string;
+  solar_paineis?: number;
+  solar_protocolo?: string;
 }
