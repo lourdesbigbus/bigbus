@@ -199,7 +199,9 @@ function DashboardContent() {
   const filteredLeads = leads.filter(l => {
     const matchesSearch = l.nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           l.whatsapp.includes(searchTerm) ||
-                          l.servico.toLowerCase().includes(searchTerm.toLowerCase());
+                          l.servico.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (l.email && l.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (l.localizacao && l.localizacao.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'Todos' || l.status === statusFilter;
     const matchesTemp = tempFilter === 'Todos' || (l.temperatura || 'Morno') === tempFilter;
     const matchesOrigem = origemFilter === 'Todos' || (l.origem || 'Landing Page') === origemFilter;
@@ -625,7 +627,24 @@ function DashboardContent() {
                           <div className="font-bold text-slate-900 cursor-pointer hover:text-brand-emerald flex items-center gap-2" onClick={() => setSelectedLead(lead)}>
                             {lead.nome} <Edit3 className="w-3 h-3 text-slate-400 animate-pulse" />
                           </div>
-                          <div className="text-[10px] text-slate-400 mt-0.5 font-mono">{lead.whatsapp}</div>
+                          <div className="text-[10px] text-slate-400 mt-1 font-mono space-y-0.5">
+                            <div className="flex items-center gap-1">
+                              <span>📱</span>
+                              <span>{lead.whatsapp}</span>
+                            </div>
+                            {lead.email && (
+                              <div className="flex items-center gap-1 text-slate-500 font-sans">
+                                <span>📧</span>
+                                <span className="truncate max-w-[185px]" title={lead.email}>{lead.email}</span>
+                              </div>
+                            )}
+                            {lead.localizacao && (
+                              <div className="flex items-center gap-1 text-slate-500 font-sans">
+                                <span>📍</span>
+                                <span className="truncate max-w-[185px]" title={lead.localizacao}>{lead.localizacao}</span>
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-[8px] bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-bold uppercase tracking-tight">
@@ -718,13 +737,31 @@ function DashboardContent() {
                           </div>
                           <span className="text-[9px] text-slate-400">{timeAgo(lead.created_at)}</span>
                         </div>
-                        <div className="flex justify-between items-center text-[10px] text-slate-500 mb-2">
+                        <div className="flex justify-between items-center text-[10px] text-slate-500 mb-1">
                           <span className="font-medium truncate max-w-[65%]">{lead.servico}</span>
                           <span className="bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-bold uppercase tracking-tight text-[8px]">
                             {lead.origem === 'Calculadora Solar' ? 'Calculadora' : lead.origem === 'Formulário Geral' ? 'Formulário' : 'Site'}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center border-t border-slate-100 pt-2 mt-2">
+                        
+                        {(lead.email || lead.localizacao) && (
+                          <div className="space-y-0.5 text-[9px] text-slate-400 font-medium pb-2 border-b border-slate-50">
+                            {lead.email && (
+                              <div className="flex items-center gap-1 truncate" title={lead.email}>
+                                <span>📧</span>
+                                <span className="truncate">{lead.email}</span>
+                              </div>
+                            )}
+                            {lead.localizacao && (
+                              <div className="flex items-center gap-1 truncate" title={lead.localizacao}>
+                                <span>📍</span>
+                                <span className="truncate">{lead.localizacao}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-center border-t border-slate-100 pt-2 mt-1">
                           <div className="text-left">
                             <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Orçamento</p>
                             <p className="font-mono text-[10px] font-bold text-slate-600">
