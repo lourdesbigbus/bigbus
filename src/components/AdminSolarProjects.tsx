@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Lead } from '@/types';
-import { Sun, ChevronLeft, ChevronRight, X, Edit3, MessageCircle, Check, Search, Filter } from 'lucide-react';
+import { Sun, ChevronLeft, ChevronRight, X, Edit3, MessageCircle, Check, Search } from 'lucide-react';
 
 interface AdminSolarProjectsProps {
   leads: Lead[];
@@ -37,29 +37,28 @@ function getStageIndex(key?: string) {
 }
 
 export default function AdminSolarProjects({ leads, onSaveLeadDetails, onOpenLeadDetails }: AdminSolarProjectsProps) {
-  // Filtros
+  // Filtros (apenas dentro dos leads de Energia Solar)
   const [searchTerm, setSearchTerm] = useState('');
-  const [serviceFilter, setServiceFilter] = useState('Todos');
   const [stageFilter, setStageFilter] = useState('Todos');
 
-  // Serviços únicos para o dropdown
-  const uniqueServices = useMemo(() => {
-    const s = Array.from(new Set(leads.map(l => l.servico).filter(Boolean)));
-    return s.sort();
+  // Apenas leads de Energia Solar
+  const allSolarLeads = useMemo(() => {
+    return leads.filter(l =>
+      l.servico?.toLowerCase().includes('solar') || l.servico === 'Energia Solar'
+    );
   }, [leads]);
 
-  // Leads filtrados (todos por padrão, sem restrição de serviço)
+  // Aplicar busca e filtro de etapa
   const solarLeads = useMemo(() => {
-    return leads.filter(l => {
-      const matchSearch = !searchTerm || 
+    return allSolarLeads.filter(l => {
+      const matchSearch = !searchTerm ||
         l.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
         l.whatsapp.includes(searchTerm) ||
         (l.localizacao && l.localizacao.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchService = serviceFilter === 'Todos' || l.servico === serviceFilter;
       const matchStage = stageFilter === 'Todos' || (l.projeto_solar_etapa || 'Dimensionamento') === stageFilter;
-      return matchSearch && matchService && matchStage;
+      return matchSearch && matchStage;
     });
-  }, [leads, searchTerm, serviceFilter, stageFilter]);
+  }, [allSolarLeads, searchTerm, stageFilter]);
 
   // Linha em edição inline
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -114,6 +113,10 @@ export default function AdminSolarProjects({ leads, onSaveLeadDetails, onOpenLea
 
       {/* Barra de Filtros */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <Sun className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="text-[11px] font-bold text-emerald-700">Apenas leads: Energia Solar</span>
+        </div>
         <div className="relative flex-1 min-w-[180px]">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
           <input
@@ -124,35 +127,32 @@ export default function AdminSolarProjects({ leads, onSaveLeadDetails, onOpenLea
             className="w-full pl-8 pr-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-          <select
-            value={serviceFilter}
-            onChange={e => setServiceFilter(e.target.value)}
-            className="py-2 px-2.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500 bg-white font-medium text-slate-600"
-          >
-            <option value="Todos">Todos os serviços</option>
-            {uniqueServices.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select
-            value={stageFilter}
-            onChange={e => setStageFilter(e.target.value)}
-            className="py-2 px-2.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500 bg-white font-medium text-slate-600"
-          >
-            <option value="Todos">Todas as etapas</option>
-            {SOLAR_STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-          </select>
-        </div>
-        <span className="text-xs text-slate-400 font-medium ml-auto">{solarLeads.length} leads</span>
+        <select
+          value={stageFilter}
+          onChange={e => setStageFilter(e.target.value)}
+          className="py-2 px-2.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500 bg-white font-medium text-slate-600"
+        >
+          <option value="Todos">Todas as etapas</option>
+          {SOLAR_STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+        <span className="text-xs text-slate-400 font-medium ml-auto">{allSolarLeads.length} projetos</span>
       </div>
 
       {/* Planilha */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         {solarLeads.length === 0 ? (
-          <div className="py-24 text-center">
-            <Sun className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-            <p className="text-slate-400 text-sm font-medium">Nenhum lead encontrado.</p>
-            <p className="text-slate-300 text-xs mt-1">Tente ajustar os filtros ou cadastre novos leads na aba Leads.</p>
+          <div className="py-20 text-center px-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-50 rounded-2xl mb-4">
+              <Sun className="w-8 h-8 text-orange-400" />
+            </div>
+            <p className="text-slate-700 text-sm font-bold mb-1">Nenhum projeto solar cadastrado</p>
+            <p className="text-slate-400 text-xs max-w-xs mx-auto leading-relaxed">
+              Para aparecer aqui, vá na aba <strong>Leads</strong>, clique em ✏️ editar um lead e altere o campo <strong>Serviço</strong> para <strong>"Energia Solar"</strong>.
+            </p>
+            <div className="mt-4 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold px-4 py-2 rounded-lg">
+              <span>Serviço = </span>
+              <span className="bg-emerald-100 px-2 py-0.5 rounded font-mono">Energia Solar</span>
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
