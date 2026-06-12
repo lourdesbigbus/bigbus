@@ -40,5 +40,12 @@ export const servicesConfig = [
     image: '/images/ar_condicionado.png',
     icon: 'Snowflake',
     href: '/ar-condicionado'
+  },
+  {
+    id: 'carregamento_veicular',
+    title: 'Carregamento Veicular',
+    image: '/images/carregamento.png',
+    icon: 'Zap',
+    href: '/carregamento-veicular'
   }
 ];

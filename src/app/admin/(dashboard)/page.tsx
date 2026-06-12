@@ -17,7 +17,8 @@ const servicesList = [
   'Aquecimento de Piso Premium',
   'Energia Solar',
   'Controle de Acesso',
-  'Instalação e Manutenção de Ar Condicionado'
+  'Instalação e Manutenção de Ar Condicionado',
+  'Carregamento Veicular'
 ];
 
 // Função para formatar SLA (Data de Entrada)

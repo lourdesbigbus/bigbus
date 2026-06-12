@@ -100,7 +100,8 @@ export default function ServicesCards({ data }: ServicesCardsProps) {
                        service.id === 'instalacao_manutencao' ? 'Instalação' : 
                        service.id === 'automacao_residencial' ? 'Automação' : 
                        service.id === 'aquecimento_piso' ? 'Aquecimento' : 
-                       service.id === 'controle_acesso' ? 'Controle' : 'Climatização'}
+                       service.id === 'controle_acesso' ? 'Controle' : 
+                       service.id === 'carregamento_veicular' ? 'Carregador' : 'Climatização'}
                     </span>
                     <ChevronRight className="w-3 h-3 absolute right-3 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all" />
                   </button>

@@ -135,6 +135,23 @@ const DEFAULT_SERVICES = [
       'Instalação rápida que mantém a garantia de fábrica'
     ],
     hidden: false
+  },
+  {
+    id: 'carregamento_veicular',
+    title: 'Carregamento Veicular',
+    image: '/images/carregamento.png',
+    icon: 'Zap',
+    href: '/carregamento-veicular',
+    description: 'Soluções completas de carregamento para veículos elétricos (VE), com projetos homologados para residências, condomínios e comércios.',
+    subpage_image: '/images/carregamento.png',
+    differentials_title: 'Diferenciais do Serviço:',
+    differentials: [
+      'Projetos de infraestrutura elétrica sob medida (homologação na concessionária)',
+      'Instalação de carregadores rápidos (Wallbox) com proteção total (DPS e DR)',
+      'Estudos de viabilidade técnica e gestão de consumo de energia',
+      'Técnicos especialistas certificados com conformidade à norma NBR 5410 e NR10'
+    ],
+    hidden: false
   }
 ];
 
@@ -733,6 +750,7 @@ export default function AdminCMS() {
                           <option value="aquecimento_piso">Aquecimento de Piso Premium</option>
                           <option value="controle_acesso">Controle de Acesso</option>
                           <option value="ar_condicionado">Ar Condicionado</option>
+                          <option value="carregamento_veicular">Carregamento Veicular</option>
                         </select>
                         
                         <div className="flex items-center gap-1.5">
