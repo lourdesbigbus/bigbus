@@ -4,12 +4,14 @@ import { generateToken } from '@/lib/auth-token';
 
 export async function POST(request: Request) {
   try {
-    const { password } = await request.json();
+    const { email, password } = await request.json();
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@hubly.com';
     const adminPassword = process.env.ADMIN_PASSWORD || 'hublypro123';
 
-    if (password === adminPassword) {
+    if (email === adminEmail && password === adminPassword) {
       const payload = {
         role: 'admin',
+        email: email,
         exp: Date.now() + 1000 * 60 * 60 * 24 * 7 // 7 dias
       };
 
@@ -26,7 +28,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    return NextResponse.json({ error: 'Senha incorreta' }, { status: 401 });
+    return NextResponse.json({ error: 'E-mail ou senha incorretos' }, { status: 401 });
   } catch (error) {
     console.error('Login API error:', error);
     return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
