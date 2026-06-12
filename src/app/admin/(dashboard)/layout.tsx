@@ -65,6 +65,32 @@ function SidebarNav() {
   );
 }
 
+function SidebarFooterNav({ handleLogout }: { handleLogout: () => void }) {
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab') || 'dashboard';
+
+  return (
+    <nav className="space-y-1">
+      <Link 
+        href="/admin?tab=configuracoes" 
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-medium text-sm transition-all ${
+          tab === 'configuracoes'
+          ? 'bg-brand-emerald text-white shadow-md shadow-emerald-500/10' 
+          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+        }`}
+      >
+        <Settings className="w-4 h-4" /> Configurações
+      </Link>
+      <button 
+        onClick={handleLogout}
+        className="w-full flex items-center gap-3 px-3 py-2.5 text-red-400 hover:bg-red-500/10 rounded-md font-medium text-sm transition-all cursor-pointer"
+      >
+        <LogOut className="w-4 h-4" /> Sair do Sistema
+      </button>
+    </nav>
+  );
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -99,17 +125,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Suspense>
 
         <div className="p-4 bg-[#1e293b]/30 border-t border-slate-800/50 mt-auto">
-          <nav className="space-y-1">
-            <Link href="#" className="flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md font-medium text-sm transition-all">
-              <Settings className="w-4 h-4" /> Configurações
-            </Link>
-            <button 
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-red-400 hover:bg-red-500/10 rounded-md font-medium text-sm transition-all cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" /> Sair do Sistema
-            </button>
-          </nav>
+          <Suspense fallback={<div className="px-6 py-2 text-xs text-slate-500">...</div>}>
+            <SidebarFooterNav handleLogout={handleLogout} />
+          </Suspense>
         </div>
       </aside>
 

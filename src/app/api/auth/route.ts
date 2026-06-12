@@ -1,21 +1,33 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { generateToken } from '@/lib/auth-token';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@hubly.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'hublypro123';
+    const adminEmailEnv = process.env.ADMIN_EMAIL || 'admin@hubly.com';
+    const adminPasswordEnv = process.env.ADMIN_PASSWORD || 'hublypro123';
 
-    if (email === adminEmail && password === adminPassword) {
+    // 1. Tentar carregar as credenciais do banco
+    const { data: dbCreds } = await supabaseAdmin
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'admin_credentials')
+      .maybeSingle();
+
+    const expectedEmail = dbCreds ? dbCreds.value.email : adminEmailEnv;
+    const expectedPassword = dbCreds ? dbCreds.value.password : adminPasswordEnv;
+
+    if (email === expectedEmail && password === expectedPassword) {
       const payload = {
         role: 'admin',
         email: email,
         exp: Date.now() + 1000 * 60 * 60 * 24 * 7 // 7 dias
       };
 
-      const token = await generateToken(payload, adminPassword);
+      // Sempre usar adminPasswordEnv como a chave de assinatura JWT para compatibilidade com middleware
+      const token = await generateToken(payload, adminPasswordEnv);
       const cookieStore = await cookies();
       
       cookieStore.set('hubly_admin_auth', token, {

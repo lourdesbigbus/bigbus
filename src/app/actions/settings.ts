@@ -145,3 +145,102 @@ export async function uploadSiteImageAction(formData: FormData) {
     return { success: false, error: error.message || 'Erro ao fazer o upload da imagem.' };
   }
 }
+
+/**
+ * Fetches the currently configured admin email.
+ */
+export async function getAdminEmailAction() {
+  try {
+    const isAuthenticated = await verifyAdminSession();
+    if (!isAuthenticated) {
+      return { success: false, error: 'Acesso não autorizado.' };
+    }
+
+    const adminEmailEnv = process.env.ADMIN_EMAIL || 'admin@hubly.com';
+
+    const { data: dbCreds } = await supabaseAdmin
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'admin_credentials')
+      .maybeSingle();
+
+    const currentEmail = dbCreds ? dbCreds.value.email : adminEmailEnv;
+
+    return { success: true, email: currentEmail };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Erro ao buscar e-mail mestre.' };
+  }
+}
+
+/**
+ * Updates the admin credentials (email and/or password) in the database.
+ * Requires verifying the current password first.
+ */
+export async function updateAdminCredentialsAction(credentials: {
+  email: string;
+  novaSenha?: string;
+  senhaAtual: string;
+}) {
+  try {
+    const isAuthenticated = await verifyAdminSession();
+    if (!isAuthenticated) {
+      return { success: false, error: 'Acesso não autorizado. Sessão inválida ou expirada.' };
+    }
+
+    const adminEmailEnv = process.env.ADMIN_EMAIL || 'admin@hubly.com';
+    const adminPasswordEnv = process.env.ADMIN_PASSWORD || 'hublypro123';
+
+    // 1. Obter as credenciais atuais
+    const { data: dbCreds } = await supabaseAdmin
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'admin_credentials')
+      .maybeSingle();
+
+    const currentPassword = dbCreds ? dbCreds.value.password : adminPasswordEnv;
+
+    // 2. Verificar se a senha atual está correta
+    if (credentials.senhaAtual !== currentPassword) {
+      return { success: false, error: 'A senha atual está incorreta.' };
+    }
+
+    // 3. Validar novas entradas
+    const newEmail = credentials.email.trim();
+    if (!newEmail) {
+      return { success: false, error: 'O e-mail mestre é obrigatório.' };
+    }
+
+    let newPassword = currentPassword;
+    if (credentials.novaSenha) {
+      const trimmedNewSenha = credentials.novaSenha.trim();
+      if (trimmedNewSenha.length < 8) {
+        return { success: false, error: 'A nova senha deve conter no mínimo 8 caracteres.' };
+      }
+      newPassword = trimmedNewSenha;
+    }
+
+    // 4. Salvar as credenciais no banco de dados (chave admin_credentials)
+    const { error } = await supabaseAdmin
+      .from('site_settings')
+      .upsert({
+        key: 'admin_credentials',
+        value: {
+          email: newEmail,
+          password: newPassword
+        }
+      });
+
+    if (error) {
+      console.error('Error updating admin credentials:', error);
+      return { success: false, error: 'Erro ao salvar credenciais no banco de dados.' };
+    }
+
+    // 5. Excluir o cookie para forçar re-autenticação imediata
+    const cookieStore = await cookies();
+    cookieStore.delete('hubly_admin_auth');
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Erro ao atualizar as credenciais.' };
+  }
+}

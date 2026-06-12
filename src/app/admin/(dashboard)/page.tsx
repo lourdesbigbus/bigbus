@@ -7,6 +7,7 @@ import { Lead, LeadStatus } from '@/types';
 import { MessageCircle, Download, Filter, Plus, MoreHorizontal, Search, LayoutGrid, List, X, Clock, Save, Edit3, BarChart, Users, TrendingUp } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import AdminCMS from '@/components/AdminCMS';
+import AdminSecurity from '@/components/AdminSecurity';
 
 // Lista de Serviços Padrão para uso nos formulários do CRM
 const servicesList = [
@@ -510,6 +511,11 @@ function DashboardContent() {
       {/* VIEW: EDITAR SITE CMS */}
       {activeTab === 'editar-site' && (
         <AdminCMS />
+      )}
+
+      {/* VIEW: CONFIGURAÇÕES DE SEGURANÇA */}
+      {activeTab === 'configuracoes' && (
+        <AdminSecurity />
       )}
 
       {/* VIEW: GESTÃO OPERACIONAL DE LEADS */}
