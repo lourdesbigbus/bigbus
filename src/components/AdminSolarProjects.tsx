@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Lead } from '@/types';
-import { Sun, ChevronLeft, ChevronRight, Save, X, Edit3, MessageCircle, Check } from 'lucide-react';
+import { Sun, ChevronLeft, ChevronRight, X, Edit3, MessageCircle, Check, Search, Filter } from 'lucide-react';
 
 interface AdminSolarProjectsProps {
   leads: Lead[];
@@ -37,7 +37,29 @@ function getStageIndex(key?: string) {
 }
 
 export default function AdminSolarProjects({ leads, onSaveLeadDetails, onOpenLeadDetails }: AdminSolarProjectsProps) {
-  const solarLeads = leads.filter(l => l.servico === 'Energia Solar');
+  // Filtros
+  const [searchTerm, setSearchTerm] = useState('');
+  const [serviceFilter, setServiceFilter] = useState('Todos');
+  const [stageFilter, setStageFilter] = useState('Todos');
+
+  // Serviços únicos para o dropdown
+  const uniqueServices = useMemo(() => {
+    const s = Array.from(new Set(leads.map(l => l.servico).filter(Boolean)));
+    return s.sort();
+  }, [leads]);
+
+  // Leads filtrados (todos por padrão, sem restrição de serviço)
+  const solarLeads = useMemo(() => {
+    return leads.filter(l => {
+      const matchSearch = !searchTerm || 
+        l.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        l.whatsapp.includes(searchTerm) ||
+        (l.localizacao && l.localizacao.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchService = serviceFilter === 'Todos' || l.servico === serviceFilter;
+      const matchStage = stageFilter === 'Todos' || (l.projeto_solar_etapa || 'Dimensionamento') === stageFilter;
+      return matchSearch && matchService && matchStage;
+    });
+  }, [leads, searchTerm, serviceFilter, stageFilter]);
 
   // Linha em edição inline
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -90,13 +112,47 @@ export default function AdminSolarProjects({ leads, onSaveLeadDetails, onOpenLea
         ))}
       </div>
 
+      {/* Barra de Filtros */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[180px]">
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar cliente, telefone, cidade..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full pl-8 pr-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+          <select
+            value={serviceFilter}
+            onChange={e => setServiceFilter(e.target.value)}
+            className="py-2 px-2.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500 bg-white font-medium text-slate-600"
+          >
+            <option value="Todos">Todos os serviços</option>
+            {uniqueServices.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select
+            value={stageFilter}
+            onChange={e => setStageFilter(e.target.value)}
+            className="py-2 px-2.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500 bg-white font-medium text-slate-600"
+          >
+            <option value="Todos">Todas as etapas</option>
+            {SOLAR_STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+          </select>
+        </div>
+        <span className="text-xs text-slate-400 font-medium ml-auto">{solarLeads.length} leads</span>
+      </div>
+
       {/* Planilha */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         {solarLeads.length === 0 ? (
           <div className="py-24 text-center">
             <Sun className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-            <p className="text-slate-400 text-sm font-medium">Nenhum lead com serviço "Energia Solar" cadastrado ainda.</p>
-            <p className="text-slate-300 text-xs mt-1">Cadastre um lead e selecione "Energia Solar" como serviço.</p>
+            <p className="text-slate-400 text-sm font-medium">Nenhum lead encontrado.</p>
+            <p className="text-slate-300 text-xs mt-1">Tente ajustar os filtros ou cadastre novos leads na aba Leads.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
