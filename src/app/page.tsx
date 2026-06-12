@@ -1,6 +1,7 @@
 import Hero from '@/components/Hero';
 import TrustSection from '@/components/TrustSection';
 import ServicesCards from '@/components/ServicesCards';
+import InteractiveHouse from '@/components/InteractiveHouse';
 import Testimonials from '@/components/Testimonials';
 import LeadForm from '@/components/LeadForm';
 import Footer from '@/components/Footer';
@@ -42,6 +43,8 @@ export default async function Home() {
           <ServicesCards data={settings?.services} />
         </div>
       </div>
+
+      <InteractiveHouse />
 
       <div className="w-full bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm border-y border-slate-200/50 dark:border-slate-800/50">
         <TrustSection data={settings?.trust} />
