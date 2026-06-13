@@ -110,7 +110,7 @@ export default function Hero({ data }: HeroProps) {
                 <badge.icon className="w-5 h-5" />
               </div>
               <span className="text-xs md:text-sm font-black uppercase tracking-widest text-left leading-tight text-brand-navy dark:text-slate-300">
-                {badge.text.split(' ').map((word, i) => <React.Fragment key={i}>{word}<br/></React.Fragment>)}
+                {badge.text}
               </span>
             </motion.div>
           ))}
