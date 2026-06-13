@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Users, MapPin, CheckCircle, ArrowRight } from 'lucide-react';
+import Counter from './Counter';
 
 interface HeroProps {
   data?: {
@@ -77,8 +78,8 @@ export default function Hero({ data }: HeroProps) {
                   <img src={`https://i.pravatar.cc/100?u=${i + 10}`} alt="User" className="w-full h-full object-cover" />
                 </motion.div>
               ))}
-              <div className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-brand-emerald flex items-center justify-center text-xs text-white font-black shadow-lg">
-                +1k
+              <div className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-brand-emerald flex items-center justify-center text-[10px] text-white font-black shadow-lg">
+                +<Counter target={250} />
               </div>
             </div>
             <p className="text-xs text-slate-500 font-bold uppercase tracking-tighter">{trust_subtitle}</p>
@@ -90,7 +91,6 @@ export default function Hero({ data }: HeroProps) {
         <div className="grid grid-cols-2 gap-y-6 gap-x-8 w-full max-w-xl pt-10 border-t border-slate-200/50 dark:border-slate-800/50">
           {[
             { icon: CheckCircle, text: "Empresas Auditadas" },
-            { icon: CheckCircle, text: "Garantia Hubly Pro" },
             { icon: MapPin, text: "Foco em Santa Catarina" },
             { icon: ShieldCheck, text: "Suporte Pós-Venda" },
           ].map((badge, idx) => (

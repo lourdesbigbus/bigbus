@@ -2,6 +2,7 @@ import React from 'react';
 import { getGaleriaAction } from '@/app/actions/galeria';
 import { GaleriaItem } from '@/types';
 import { Star, Quote, ShieldCheck } from 'lucide-react';
+import Counter from './Counter';
 
 // Depoimentos de fallback (caso não haja dados no banco ainda)
 const FALLBACK: GaleriaItem[] = [
@@ -33,7 +34,9 @@ export default async function GaleriaSection({ servico, titulo, subtitulo }: Gal
   const fotos       = (useFallback ? [] : items).filter(i => i.tipo === 'foto' || i.tipo === 'ambos');
 
   const headingTitulo   = titulo    || 'O QUE NOSSOS <span>CLIENTES</span> DIZEM';
-  const headingSubtitulo = subtitulo || 'São mais de 1.000 clientes atendidos com excelência em Santa Catarina.';
+  const headingSubtitulo = subtitulo || (
+    <span>São mais de <Counter target={250} /> clientes atendidos com excelência em Santa Catarina.</span>
+  );
 
   return (
     <section className="py-16 px-6 w-full max-w-7xl mx-auto z-10 relative space-y-16">

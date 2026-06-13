@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Quote, ShieldCheck, Star } from 'lucide-react';
+import Counter from './Counter';
 
 interface Testimonial {
   id: number;
@@ -98,7 +99,7 @@ export default function Testimonials({ serviceId, data }: TestimonialsProps) {
         <p className="text-slate-500 dark:text-slate-400 text-base md:text-xl font-medium max-w-2xl mx-auto">
           {serviceId 
             ? `Veja a experiência de quem já contratou nosso serviço de ${allTestimonials.find(t => t.serviceId === serviceId)?.service || 'nossos parceiros'}.`
-            : "São mais de 1.000 clientes e empresas atendidos com excelência em Santa Catarina."}
+            : <span>São mais de <Counter target={250} /> clientes e empresas atendidos com excelência em Santa Catarina.</span>}
         </p>
       </div>
 
