@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from './lib/auth-token';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const authCookie = request.cookies.get('hubly_admin_auth');
   const token = authCookie?.value;
   
