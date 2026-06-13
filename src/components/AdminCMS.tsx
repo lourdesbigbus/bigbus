@@ -20,7 +20,9 @@ import {
   ShieldCheck, 
   MessageSquare,
   BadgeCheck,
-  Settings
+  Settings,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 
 const DEFAULT_HERO = {
@@ -503,6 +505,41 @@ export default function AdminCMS() {
 
                 return (
                   <div key={service.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 flex flex-col md:flex-row gap-5 items-start">
+                    {/* Controles de Ordenação */}
+                    <div className="flex flex-row md:flex-col gap-2 md:gap-1 items-center justify-center md:self-stretch pr-2 md:border-r border-slate-200/60 flex-shrink-0 w-full md:w-auto border-b md:border-b-0 pb-2 md:pb-0">
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => {
+                          const updated = [...servicesData];
+                          const temp = updated[index];
+                          updated[index] = updated[index - 1];
+                          updated[index - 1] = temp;
+                          setServicesData(updated);
+                        }}
+                        className="p-1.5 hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent rounded text-slate-500 hover:text-brand-emerald transition-all"
+                        title="Mover para Cima"
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <span className="text-[10px] font-bold text-slate-400 select-none">#{index + 1}</span>
+                      <button
+                        type="button"
+                        disabled={index === servicesData.length - 1}
+                        onClick={() => {
+                          const updated = [...servicesData];
+                          const temp = updated[index];
+                          updated[index] = updated[index + 1];
+                          updated[index + 1] = temp;
+                          setServicesData(updated);
+                        }}
+                        className="p-1.5 hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent rounded text-slate-500 hover:text-brand-emerald transition-all"
+                        title="Mover para Baixo"
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </div>
+
                     {/* Imagem do Serviço */}
                     <div className="w-24 h-24 bg-white border border-slate-200 rounded-lg p-2 flex flex-col items-center justify-center relative overflow-hidden flex-shrink-0">
                       {isUploading ? (
