@@ -67,7 +67,12 @@ export default function Hero({ data }: HeroProps) {
           
           <div className="flex flex-col items-center lg:items-start gap-2 sm:ml-4">
             <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map((i) => (
+              {[
+                { src: '/service_solar.png', alt: 'Energia Solar' },
+                { src: '/service_automation.png', alt: 'Automação' },
+                { src: '/service_security.png', alt: 'Segurança' },
+                { src: '/service_ac.png', alt: 'Climatização' },
+              ].map((service, i) => (
                 <motion.div 
                   key={i} 
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -75,7 +80,7 @@ export default function Hero({ data }: HeroProps) {
                   transition={{ delay: i * 0.1 }}
                   className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 overflow-hidden shadow-lg"
                 >
-                  <img src={`https://i.pravatar.cc/100?u=${i + 10}`} alt="User" className="w-full h-full object-cover" />
+                  <img src={service.src} alt={service.alt} className="w-full h-full object-cover" />
                 </motion.div>
               ))}
               <div className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-brand-emerald flex items-center justify-center text-[10px] text-white font-black shadow-lg">
