@@ -6,6 +6,7 @@ import { getTrackingsAction, saveTrackingAction, deleteTrackingAction } from '@/
 import { getLeadsAction } from '@/app/actions/leads';
 import { getCompaniesAction } from '@/app/actions/companies';
 import { servicesConfig } from '@/config/services';
+import { getSiteSettingsAction, saveSiteSettingsAction } from '@/app/actions/settings';
 import { 
   ClipboardList, 
   Search, 
@@ -25,7 +26,8 @@ import {
   MessageCircle,
   Building,
   User,
-  Clock
+  Clock,
+  Settings
 } from 'lucide-react';
 
 const ETAPAS = [
@@ -36,6 +38,14 @@ const ETAPAS = [
   { id: 'finalizado', label: 'Finalizado', color: 'bg-emerald-50 text-emerald-600 border-emerald-200' }
 ];
 
+const DEFAULT_TEMPLATES = {
+  avisar_etapa: "Olá {cliente}! Passando para informar que o andamento do seu serviço de '{servico}' (realizado pela nossa empresa parceira homologada {empresa}) avançou para a etapa: '{etapa}'. Qualquer dúvida, conte conosco!",
+  cobrar_empresa: "Olá {responsavel} da {empresa}! Aqui é da equipe Hubly Pro. Estamos acompanhando o serviço de '{servico}' para o cliente {cliente} e gostaríamos de solicitar uma atualização sobre a etapa atual: '{etapa}'. Como está o andamento? Há alguma pendência?",
+  cobrar_cliente: "Olá {cliente}! Aqui é do Hubly Pro. Gostaríamos de avisar que precisamos de um retorno/ação sua para avançarmos com o serviço de '{servico}' (prestado pela {empresa}) na etapa '{etapa}'. Por favor, entre em contato quando puder. Obrigado!",
+  avisar_conclusao: "Olá {cliente}! Temos o prazer de informar que o seu serviço de '{servico}' realizado pela empresa homologada {empresa} foi concluído com sucesso! 🎉 Agradecemos pela confiança no Hubly Pro.",
+  feedback: "Olá {cliente}! Como o seu serviço de '{servico}' com a {empresa} foi finalizado, gostaríamos muito de saber como foi a sua experiência. O seu feedback nos ajuda a manter o alto padrão de qualidade das nossas empresas homologadas! Como você avalia o serviço prestado?"
+};
+
 export default function AdminServiceTrackings() {
   const [trackings, setTrackings] = useState<ServiceTracking[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -44,6 +54,11 @@ export default function AdminServiceTrackings() {
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Modelos de Mensagem (Templates)
+  const [templates, setTemplates] = useState(DEFAULT_TEMPLATES);
+  const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
+  const [editingTemplates, setEditingTemplates] = useState(DEFAULT_TEMPLATES);
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,15 +85,21 @@ export default function AdminServiceTrackings() {
       setLoading(true);
       setErrorMsg('');
 
-      const [trackingsRes, leadsRes, companiesRes] = await Promise.all([
+      const [trackingsRes, leadsRes, companiesRes, templatesRes] = await Promise.all([
         getTrackingsAction(),
         getLeadsAction(),
-        getCompaniesAction()
+        getCompaniesAction(),
+        getSiteSettingsAction('tracking_templates')
       ]);
 
       if (trackingsRes.success) setTrackings(trackingsRes.data || []);
       if (leadsRes.success) setLeads(leadsRes.data || []);
       if (companiesRes.success) setCompanies(companiesRes.data || []);
+      if (templatesRes.success && templatesRes.data) {
+        setTemplates({ ...DEFAULT_TEMPLATES, ...templatesRes.data });
+      } else {
+        setTemplates(DEFAULT_TEMPLATES);
+      }
 
       if (!trackingsRes.success || !leadsRes.success || !companiesRes.success) {
         setErrorMsg('Alguns dados não puderam ser carregados corretamente do banco de dados.');
@@ -202,18 +223,29 @@ export default function AdminServiceTrackings() {
         empresa_whatsapp: undefined,
         empresa_email: undefined
       });
-      return;
     }
+  };
 
-    const company = companies.find(c => c.id === companyId);
-    if (company) {
-      setEditingTracking({
-        ...editingTracking,
-        empresa_id: company.id,
-        empresa_nome: company.nome_fantasia,
-        empresa_whatsapp: company.whatsapp,
-        empresa_email: company.email
-      });
+  // Alteração inline de etapa na tabela
+  const handleInlineStageChange = async (id: string, newEtapa: typeof ETAPAS[number]['id']) => {
+    const tracking = trackings.find(t => t.id === id);
+    if (!tracking) return;
+
+    const updatedTracking = { ...tracking, etapa: newEtapa as any };
+    
+    // Atualização otimista
+    setTrackings(trackings.map(t => t.id === id ? updatedTracking : t));
+
+    try {
+      const res = await saveTrackingAction(updatedTracking);
+      if (res.success) {
+        showSuccess('Etapa atualizada com sucesso!');
+      } else {
+        throw new Error(res.error);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Erro ao atualizar a etapa.');
+      fetchData(); // Rollback
     }
   };
 
@@ -225,27 +257,27 @@ export default function AdminServiceTrackings() {
     const etapaLabel = ETAPAS.find(e => e.id === tracking.etapa)?.label || tracking.etapa;
     const respNome = companies.find(c => c.id === tracking.empresa_id)?.responsavel_nome || 'Responsável';
 
+    let templateText = '';
     if (type === 'cobrar') {
       if (target === 'empresa') {
-        return `Olá ${respNome} da ${empresa}! Aqui é da equipe Hubly Pro. Estamos acompanhando o serviço de '${servico}' para o cliente ${cliente} e gostaríamos de solicitar uma atualização sobre a etapa atual: '${etapaLabel}'. Como está o andamento? Há alguma pendência?`;
+        templateText = templates.cobrar_empresa;
       } else {
-        return `Olá ${cliente}! Aqui é do Hubly Pro. Gostaríamos de avisar que precisamos de um retorno/ação sua para avançarmos com o serviço de '${servico}' (prestado pela ${empresa}) na etapa '${etapaLabel}'. Por favor, entre em contato quando puder. Obrigado!`;
+        templateText = templates.cobrar_cliente;
       }
+    } else if (type === 'avisar_etapa') {
+      templateText = templates.avisar_etapa;
+    } else if (type === 'avisar_conclusao') {
+      templateText = templates.avisar_conclusao;
+    } else if (type === 'feedback') {
+      templateText = templates.feedback;
     }
 
-    if (type === 'avisar_etapa') {
-      return `Olá ${cliente}! Passando para informar que o andamento do seu serviço de '${servico}' (realizado pela nossa empresa parceira homologada ${empresa}) avançou para a etapa: '${etapaLabel}'. Qualquer dúvida, conte conosco!`;
-    }
-
-    if (type === 'avisar_conclusao') {
-      return `Olá ${cliente}! Temos o prazer de informar que o seu serviço de '${servico}' realizado pela empresa homologada ${empresa} foi concluído com sucesso! 🎉 Agradecemos pela confiança no Hubly Pro.`;
-    }
-
-    if (type === 'feedback') {
-      return `Olá ${cliente}! Como o seu serviço de '${servico}' com a ${empresa} foi finalizado, gostaríamos muito de saber como foi a sua experiência. O seu feedback nos ajuda a manter o alto padrão de qualidade das nossas empresas homologadas! Como você avalia o serviço prestado?`;
-    }
-
-    return '';
+    return templateText
+      .replace(/{cliente}/g, cliente)
+      .replace(/{servico}/g, servico)
+      .replace(/{empresa}/g, empresa)
+      .replace(/{etapa}/g, etapaLabel)
+      .replace(/{responsavel}/g, respNome);
   };
 
   const handleOpenNotify = (tracking: ServiceTracking) => {
@@ -373,12 +405,23 @@ export default function AdminServiceTrackings() {
           </select>
         </div>
 
-        <button 
-          onClick={handleOpenCreate}
-          className="bg-brand-emerald text-white px-3 py-2 rounded-md text-xs font-bold hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-sm cursor-pointer whitespace-nowrap"
-        >
-          <Plus className="w-3.5 h-3.5" /> Novo Acompanhamento
-        </button>
+        <div className="flex gap-2 w-full md:w-auto justify-end">
+          <button 
+            onClick={() => {
+              setEditingTemplates({ ...templates });
+              setIsTemplatesModalOpen(true);
+            }}
+            className="bg-white border border-slate-200 text-slate-600 px-3 py-2 rounded-md text-xs font-semibold hover:bg-slate-50 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <Settings className="w-3.5 h-3.5" /> Configurar Frases
+          </button>
+          <button 
+            onClick={handleOpenCreate}
+            className="bg-brand-emerald text-white px-3 py-2 rounded-md text-xs font-bold hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-sm cursor-pointer whitespace-nowrap"
+          >
+            <Plus className="w-3.5 h-3.5" /> Novo Acompanhamento
+          </button>
+        </div>
       </div>
 
       {/* Lista / Tabela */}
@@ -443,9 +486,15 @@ export default function AdminServiceTrackings() {
 
                       {/* Etapa */}
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${currentEtapa?.color || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                          {currentEtapa?.label || t.etapa}
-                        </span>
+                        <select
+                          value={t.etapa}
+                          onChange={(e) => handleInlineStageChange(t.id, e.target.value as any)}
+                          className={`text-[9px] font-black uppercase tracking-wider border rounded-full px-2.5 py-1 outline-none cursor-pointer border shadow-sm transition-all bg-transparent ${currentEtapa?.color || 'bg-slate-100 text-slate-600 border-slate-200'}`}
+                        >
+                          {ETAPAS.map(e => (
+                            <option key={e.id} value={e.id} className="bg-white text-slate-800 font-semibold">{e.label}</option>
+                          ))}
+                        </select>
                       </td>
 
                       {/* Cronograma */}
@@ -832,6 +881,141 @@ export default function AdminServiceTrackings() {
                   <MessageCircle className="w-4 h-4" /> Enviar por WhatsApp
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIGURAR FRASES PRONTAS */}
+      {isTemplatesModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            {/* Header Modal */}
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-brand-emerald/10 text-brand-emerald rounded-lg">
+                  <Settings className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 font-montserrat uppercase tracking-tight">Configurar Frases Prontas</h3>
+                  <p className="text-[11px] text-slate-500">Personalize os modelos de mensagens disparados pelo sistema.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsTemplatesModalOpen(false)}
+                className="p-2 hover:bg-slate-200 rounded-lg text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Placeholders Disponíveis</span>
+                <p className="text-[10px] text-slate-600 leading-relaxed">
+                  Utilize as tags abaixo para que o sistema substitua automaticamente pelos dados do serviço:
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-white border border-slate-200 text-slate-700 select-all">{`{cliente}`}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-white border border-slate-200 text-slate-700 select-all">{`{servico}`}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-white border border-slate-200 text-slate-700 select-all">{`{empresa}`}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-white border border-slate-200 text-slate-700 select-all">{`{etapa}`}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-white border border-slate-200 text-slate-700 select-all">{`{responsavel}`}</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Avisar Etapa */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Avisar Avanço de Etapa (Cliente)</label>
+                  <textarea
+                    value={editingTemplates.avisar_etapa}
+                    onChange={(e) => setEditingTemplates({ ...editingTemplates, avisar_etapa: e.target.value })}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-emerald min-h-[70px] leading-relaxed"
+                  />
+                </div>
+
+                {/* Cobrar Empresa */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Cobrar Etapa / Alerta (Empresa Parceira)</label>
+                  <textarea
+                    value={editingTemplates.cobrar_empresa}
+                    onChange={(e) => setEditingTemplates({ ...editingTemplates, cobrar_empresa: e.target.value })}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-emerald min-h-[70px] leading-relaxed"
+                  />
+                </div>
+
+                {/* Cobrar Cliente */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Cobrar Retorno / Alerta (Cliente)</label>
+                  <textarea
+                    value={editingTemplates.cobrar_cliente}
+                    onChange={(e) => setEditingTemplates({ ...editingTemplates, cobrar_cliente: e.target.value })}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-emerald min-h-[70px] leading-relaxed"
+                  />
+                </div>
+
+                {/* Avisar Conclusão */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Avisar Finalização (Cliente)</label>
+                  <textarea
+                    value={editingTemplates.avisar_conclusao}
+                    onChange={(e) => setEditingTemplates({ ...editingTemplates, avisar_conclusao: e.target.value })}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-emerald min-h-[70px] leading-relaxed"
+                  />
+                </div>
+
+                {/* Feedback */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Feedback de Finalização (Cliente)</label>
+                  <textarea
+                    value={editingTemplates.feedback}
+                    onChange={(e) => setEditingTemplates({ ...editingTemplates, feedback: e.target.value })}
+                    className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-emerald min-h-[70px] leading-relaxed"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 flex-shrink-0">
+              <button 
+                type="button" 
+                onClick={() => setIsTemplatesModalOpen(false)}
+                className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button"
+                onClick={async () => {
+                  try {
+                    setSaving(true);
+                    const res = await saveSiteSettingsAction('tracking_templates', editingTemplates);
+                    if (res.success) {
+                      setTemplates(editingTemplates);
+                      setIsTemplatesModalOpen(false);
+                      showSuccess('Frases configuradas salvas com sucesso!');
+                    } else {
+                      throw new Error(res.error);
+                    }
+                  } catch (err: any) {
+                    alert(err.message || 'Erro ao salvar os modelos de mensagem.');
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-brand-emerald hover:bg-emerald-600 disabled:bg-slate-300 text-white font-bold px-5 py-2.5 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                {saving ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Check className="w-3.5 h-3.5" />
+                )}
+                Salvar Frases
+              </button>
             </div>
           </div>
         </div>
