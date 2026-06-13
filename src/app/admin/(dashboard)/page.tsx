@@ -12,6 +12,7 @@ import AdminSolarProjects from '@/components/AdminSolarProjects';
 import AdminGaleria from '@/components/AdminGaleria';
 import AdminCompanies from '@/components/AdminCompanies';
 import AdminServiceTrackings from '@/components/AdminServiceTrackings';
+import AdminReports from '@/components/AdminReports';
 import { Sun, Images } from 'lucide-react';
 
 // Lista de Serviços Padrão para uso nos formulários do CRM
@@ -606,11 +607,7 @@ function DashboardContent() {
 
       {/* VIEW: RELATÓRIOS */}
       {activeTab === 'relatorios' && (
-        <div className="bg-white p-12 rounded-md border border-slate-200 shadow-sm text-center">
-          <BarChart className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-slate-700">Painel de Relatórios</h2>
-          <p className="text-slate-500 text-sm mt-2">Módulo avançado de relatórios em desenvolvimento.</p>
-        </div>
+        <AdminReports />
       )}
 
       {/* VIEW: EDITAR SITE CMS */}
