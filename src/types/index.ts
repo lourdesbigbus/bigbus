@@ -41,3 +41,25 @@ export interface GaleriaItem {
   foto_url?: string;         // URL externa da foto
   ativo: boolean;
 }
+
+export interface Company {
+  id: string;
+  created_at: string;
+  nome_fantasia: string;
+  razao_social?: string;
+  cnpj?: string;
+  email?: string;
+  telefone?: string;
+  whatsapp?: string;
+  cidade: string;
+  estado: string;
+  endereco?: string;
+  responsavel_nome?: string;
+  status: 'Ativo' | 'Inativo' | 'Pendente' | 'Bloqueado';
+  servicos: string[];
+  score: number; // pontuação geral de 0 a 100
+  rating: number; // avaliação por estrelas (ex: 0 a 5)
+  projetos_concluidos: number;
+  observacoes?: string;
+  logo_url?: string;
+}

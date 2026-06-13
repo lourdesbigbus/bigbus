@@ -10,6 +10,7 @@ import AdminCMS from '@/components/AdminCMS';
 import AdminSecurity from '@/components/AdminSecurity';
 import AdminSolarProjects from '@/components/AdminSolarProjects';
 import AdminGaleria from '@/components/AdminGaleria';
+import AdminCompanies from '@/components/AdminCompanies';
 import { Sun, Images } from 'lucide-react';
 
 // Lista de Serviços Padrão para uso nos formulários do CRM
@@ -344,6 +345,12 @@ function DashboardContent() {
               <p className="text-xs text-slate-500 mt-1">Adicione fotos reais e depoimentos que aparecem no site.</p>
             </>
           )}
+          {activeTab === 'empresas' && (
+            <>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight">Empresas Homologadas (Hubly Pro)</h1>
+              <p className="text-xs text-slate-500 mt-1">Gerencie a pontuação, documentação e auditoria das empresas homologadas.</p>
+            </>
+          )}
         </div>
 
         {/* Botões Operacionais (Apenas na aba Leads) */}
@@ -621,6 +628,11 @@ function DashboardContent() {
       {/* VIEW: GALERIA & DEPOIMENTOS */}
       {activeTab === 'galeria' && (
         <AdminGaleria />
+      )}
+
+      {/* VIEW: EMPRESAS HOMOLOGADAS */}
+      {activeTab === 'empresas' && (
+        <AdminCompanies />
       )}
 
       {/* VIEW: GESTÃO OPERACIONAL DE LEADS */}

@@ -14,7 +14,8 @@ import {
   Menu,
   ChevronRight,
   Sun,
-  Images
+  Images,
+  Building
 } from 'lucide-react';
 
 function SidebarNav() {
@@ -52,6 +53,16 @@ function SidebarNav() {
         }`}
       >
         <Sun className="w-4 h-4" /> Projetos Solares
+      </Link>
+      <Link 
+        href="/admin?tab=empresas" 
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-medium text-sm transition-all ${
+          tab === 'empresas' 
+          ? 'bg-brand-emerald text-white shadow-md shadow-emerald-500/10' 
+          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+        }`}
+      >
+        <Building className="w-4 h-4" /> Empresas Homologadas
       </Link>
       <Link 
         href="/admin?tab=galeria" 
