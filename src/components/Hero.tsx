@@ -22,7 +22,7 @@ export default function Hero({ data }: HeroProps) {
   const title_part1 = data?.title_part1 || "CONTRATE COM";
   const title_part2 = data?.title_part2 || "SEGURANÇA";
   const title_part3 = data?.title_part3 || "E ECONOMIA";
-  const description = data?.description || "O Hubly Pro conecta você apenas às melhores empresas de energia solar e conforto térmico. Parceiros auditados com garantia de qualidade total.";
+  const description = data?.description || "Sua plataforma definitiva para contratar serviços homologados de automação, energia limpa, segurança e climatização com total tranquilidade.";
   const cta_text = data?.cta_text || "Solicitar Orçamento Grátis";
   const trust_subtitle = data?.trust_subtitle || "Clientes satisfeitos em SC";
 

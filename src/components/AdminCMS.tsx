@@ -28,7 +28,7 @@ const DEFAULT_HERO = {
   title_part1: "CONTRATE COM",
   title_part2: "SEGURANÇA",
   title_part3: "E ECONOMIA",
-  description: "O Hubly Pro conecta você apenas às melhores empresas de energia solar e conforto térmico. Parceiros auditados com garantia de qualidade total.",
+  description: "Sua plataforma definitiva para contratar serviços homologados de automação, energia limpa, segurança e climatização com total tranquilidade.",
   cta_text: "Solicitar Orçamento Grátis",
   trust_subtitle: "Clientes satisfeitos em SC"
 };
