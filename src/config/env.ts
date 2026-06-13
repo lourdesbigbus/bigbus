@@ -16,7 +16,7 @@ export const env = {
  */
 export function validateSupabaseConfig() {
   const { url, anonKey } = env.supabase;
-  if (!url || !anonKey || url.includes('placeholder') || url.includes('iznofzicufknytbumbbb.supabase.co') === false && url.includes('localhost') === false) {
+  if (!url || !anonKey || url.includes('placeholder') || (url.includes('.supabase.co') === false && url.includes('localhost') === false && url.includes('127.0.0.1') === false)) {
     console.warn('⚠️ Supabase credentials might not be configured correctly in .env.local');
     return false;
   }
