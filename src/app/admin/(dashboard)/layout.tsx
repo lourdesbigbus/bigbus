@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Sun,
   Images,
-  Building
+  Building,
+  ClipboardList
 } from 'lucide-react';
 
 function SidebarNav() {
@@ -73,6 +74,16 @@ function SidebarNav() {
         }`}
       >
         <Images className="w-4 h-4" /> Galeria &amp; Depoimentos
+      </Link>
+      <Link 
+        href="/admin?tab=acompanhamento" 
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-medium text-sm transition-all ${
+          tab === 'acompanhamento' 
+          ? 'bg-brand-emerald text-white shadow-md shadow-emerald-500/10' 
+          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+        }`}
+      >
+        <ClipboardList className="w-4 h-4" /> Acompanhamento
       </Link>
       <Link 
         href="/admin?tab=relatorios" 

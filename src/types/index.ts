@@ -63,3 +63,22 @@ export interface Company {
   observacoes?: string;
   logo_url?: string;
 }
+
+export interface ServiceTracking {
+  id: string;
+  created_at: string;
+  lead_id?: string;
+  cliente_nome: string;
+  cliente_whatsapp: string;
+  cliente_email: string;
+  servico: string;
+  empresa_id: string;
+  empresa_nome: string;
+  empresa_whatsapp?: string;
+  empresa_email?: string;
+  etapa: 'planejamento' | 'agendamento' | 'execucao' | 'vistoria' | 'finalizado';
+  data_inicio?: string;
+  data_previsao?: string;
+  observacoes?: string;
+}
+

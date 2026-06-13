@@ -11,6 +11,7 @@ import AdminSecurity from '@/components/AdminSecurity';
 import AdminSolarProjects from '@/components/AdminSolarProjects';
 import AdminGaleria from '@/components/AdminGaleria';
 import AdminCompanies from '@/components/AdminCompanies';
+import AdminServiceTrackings from '@/components/AdminServiceTrackings';
 import { Sun, Images } from 'lucide-react';
 
 // Lista de Serviços Padrão para uso nos formulários do CRM
@@ -327,6 +328,12 @@ function DashboardContent() {
               <p className="text-xs text-slate-500 mt-1">Exportação de dados e relatórios de auditoria.</p>
             </>
           )}
+          {activeTab === 'acompanhamento' && (
+            <>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight">Acompanhamento de Serviços</h1>
+              <p className="text-xs text-slate-500 mt-1">Gerencie a execução dos serviços homologados e envie notificações aos clientes e parceiros.</p>
+            </>
+          )}
           {activeTab === 'editar-site' && (
             <>
               <h1 className="text-xl font-black text-slate-900 tracking-tight">Gerenciador de Conteúdo (CMS)</h1>
@@ -609,6 +616,11 @@ function DashboardContent() {
       {/* VIEW: EDITAR SITE CMS */}
       {activeTab === 'editar-site' && (
         <AdminCMS />
+      )}
+
+      {/* VIEW: ACOMPANHAMENTO DE SERVIÇOS */}
+      {activeTab === 'acompanhamento' && (
+        <AdminServiceTrackings />
       )}
 
       {/* VIEW: CONFIGURAÇÕES DE SEGURANÇA */}
