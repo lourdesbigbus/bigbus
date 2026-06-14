@@ -16,61 +16,40 @@ interface Testimonial {
 }
 
 const testimonials: Testimonial[] = [
-  // Limpeza Solar
   {
     id: 1,
-    text: "Fiquei impressionado com a diferença na geração após a limpeza. A equipe foi muito técnica e cuidadosa. Recomendo fortemente para quem quer manter o sistema no máximo!",
-    service: "Limpeza Técnica de Placas",
-    serviceId: "limpeza_solar",
+    text: "Realizei o sonho de comprar meu motorhome com a BigBus. O processo de financiamento foi super rápido e a vistoria cautelar me deu total segurança. Veículo entregue impecável!",
+    service: "Motorhomes e RVs",
+    serviceId: "motorhomes",
     name: "Carlos Eduardo",
     location: "Florianópolis, SC",
     rating: 5
   },
   {
-    id: 4,
-    text: "O sistema tinha perdido quase 20% de eficiência. Após a limpeza técnica da Hubly Pro, os números voltaram ao normal no mesmo dia. Investimento que se paga muito rápido.",
-    service: "Limpeza Técnica de Placas",
-    serviceId: "limpeza_solar",
-    name: "Ricardo Mendes",
-    location: "São José, SC",
-    rating: 5
-  },
-  // Instalação
-  {
     id: 2,
-    text: "Instalação impecável. Tudo organizado, cabos bem passados e suporte nota 10. O Hubly Pro realmente seleciona as melhores empresas, me senti muito seguro durante todo o processo.",
-    service: "Instalação de Energia Solar",
-    serviceId: "instalacao_manutencao",
+    text: "Vendi minha van de passageiros em tempo recorde. Eles intermediaram tudo, desde a avaliação até a transferência. Dinheiro rápido e zero burocracia!",
+    service: "Vans e Utilitários",
+    serviceId: "vans",
     name: "Mariana Souza",
     location: "Joinville, SC",
     rating: 5
   },
   {
-    id: 5,
-    text: "Excelente atendimento do início ao fim. A equipe de instalação foi muito pontual e o sistema está funcionando perfeitamente. O acompanhamento da Hubly faz toda a diferença.",
-    service: "Instalação de Energia Solar",
-    serviceId: "instalacao_manutencao",
-    name: "Felipe Oliveira",
-    location: "Itajaí, SC",
-    rating: 5
-  },
-  // Aquecimento
-  {
     id: 3,
-    text: "O aquecimento de piso foi a melhor decisão que tomamos para nossa casa na serra. Conforto térmico absoluto e um acabamento de primeira. Os técnicos são verdadeiros especialistas.",
-    service: "Aquecimento de Piso Premium",
-    serviceId: "aquecimento_piso",
+    text: "Comprei um SUV e dei meu carro antigo na troca. Excelente avaliação do meu usado e taxas de juros bem menores do que o banco estava me oferecendo. Nota 10!",
+    service: "Carros e SUVs",
+    serviceId: "carros",
     name: "Roberto Almeida",
     location: "Blumenau, SC",
     rating: 5
   },
   {
-    id: 6,
-    text: "Sistema de aquecimento de piso de altíssima qualidade. A automação funciona super bem e o calor é muito uniforme. Equipe técnica muito bem preparada e educada.",
-    service: "Aquecimento de Piso Premium",
-    serviceId: "aquecimento_piso",
-    name: "Juliana Costa",
-    location: "Lages, SC",
+    id: 4,
+    text: "Adquiri dois micro-ônibus para a minha frota de turismo. A BigBus comprovou procedência e revisou toda a parte mecânica. Parceiros de confiança!",
+    service: "Ônibus e Micro-ônibus",
+    serviceId: "onibus",
+    name: "Ricardo Mendes",
+    location: "São José, SC",
     rating: 5
   }
 ];

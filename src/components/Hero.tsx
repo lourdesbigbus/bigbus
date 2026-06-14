@@ -18,13 +18,13 @@ interface HeroProps {
 }
 
 export default function Hero({ data }: HeroProps) {
-  const badge = data?.badge || "Hub de Empresas 100% Homologadas";
-  const title_part1 = data?.title_part1 || "CONTRATE COM";
-  const title_part2 = data?.title_part2 || "SEGURANÇA";
-  const title_part3 = data?.title_part3 || "E ECONOMIA";
-  const description = data?.description || "Sua plataforma definitiva para contratar serviços homologados de automação, energia limpa, segurança e climatização com total tranquilidade.";
-  const cta_text = data?.cta_text || "Solicitar Orçamento Grátis";
-  const trust_subtitle = data?.trust_subtitle || "Clientes satisfeitos em SC";
+  const badge = data?.badge || "Compra • Troca • Venda • Financiamento";
+  const title_part1 = data?.title_part1 || "SEU VEÍCULO COM A MELHOR";
+  const title_part2 = data?.title_part2 || "NEGOCIAÇÃO";
+  const title_part3 = data?.title_part3 || "E SEGURANÇA";
+  const description = data?.description || "Encontre ou anuncie Vans, Ônibus, Carros e Motorhomes. Cuidamos de todo o processo de vistoria, documentação e aprovação de crédito para você.";
+  const cta_text = data?.cta_text || "Simular Financiamento / Negociar";
+  const trust_subtitle = data?.trust_subtitle || "Veículos entregues com segurança";
 
   const handleScrollToForm = () => {
     const element = document.getElementById('lead-form');
@@ -47,7 +47,7 @@ export default function Hero({ data }: HeroProps) {
 
         <h1 className="text-4xl md:text-6xl lg:text-[5.5rem] font-montserrat font-black text-brand-navy dark:text-slate-100 leading-[0.95] mb-8 uppercase tracking-tighter">
           {title_part1} <br className="hidden lg:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-emerald to-emerald-400">{title_part2}</span> <br className="hidden lg:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-red-600">{title_part2}</span> <br className="hidden lg:block" />
           {title_part3}
         </h1>
 
@@ -68,19 +68,19 @@ export default function Hero({ data }: HeroProps) {
           <div className="flex flex-col items-center lg:items-start gap-2 sm:ml-4">
             <div className="flex -space-x-3">
               {[
-                { src: '/service_solar.png', alt: 'Energia Solar' },
-                { src: '/service_automation.png', alt: 'Automação' },
-                { src: '/service_security.png', alt: 'Segurança' },
-                { src: '/service_ac.png', alt: 'Climatização' },
+                { src: '/images/van.png', alt: 'Vans' },
+                { src: '/images/onibus.png', alt: 'Ônibus' },
+                { src: '/images/carro.png', alt: 'Carros' },
+                { src: '/images/motorhome.png', alt: 'Motorhomes' },
               ].map((service, i) => (
                 <motion.div 
-                  key={i} 
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 overflow-hidden shadow-lg"
+                   key={i} 
+                   initial={{ opacity: 0, scale: 0.8 }}
+                   animate={{ opacity: 1, scale: 1 }}
+                   transition={{ delay: i * 0.1 }}
+                   className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 overflow-hidden shadow-lg p-1"
                 >
-                  <img src={service.src} alt={service.alt} className="w-full h-full object-cover" />
+                  <img src={service.src} alt={service.alt} className="w-full h-full object-contain" />
                 </motion.div>
               ))}
               <div className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-brand-emerald flex items-center justify-center text-[10px] text-white font-black shadow-lg">
@@ -95,9 +95,9 @@ export default function Hero({ data }: HeroProps) {
         {/* Badges de Confiança - Floating Grid */}
         <div className="grid grid-cols-2 gap-y-6 gap-x-8 w-full max-w-xl pt-10 border-t border-slate-200/50 dark:border-slate-800/50">
           {[
-            { icon: CheckCircle, text: "Empresas Auditadas" },
-            { icon: MapPin, text: "Foco em Santa Catarina" },
-            { icon: ShieldCheck, text: "Suporte Pós-Venda" },
+            { icon: CheckCircle, text: "Veículos Vistoriados" },
+            { icon: MapPin, text: "Atendimento Nacional" },
+            { icon: ShieldCheck, text: "Garantia e Segurança" },
           ].map((badge, idx) => (
             <motion.div 
               key={idx}

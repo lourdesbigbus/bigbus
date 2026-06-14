@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="w-full py-8 px-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 mt-auto">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="text-slate-500 dark:text-slate-400 text-sm">
-          © {new Date().getFullYear()} Hubly Pro. Todos os direitos reservados.
+          © {new Date().getFullYear()} BigBus. Todos os direitos reservados.
         </div>
         
         <Link 

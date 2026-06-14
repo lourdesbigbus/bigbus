@@ -7,18 +7,18 @@ import { Search, ShieldCheck, BadgeCheck, Zap, ArrowRight } from 'lucide-react';
 const steps = [
   {
     icon: <Search className="w-6 h-6" />,
-    title: "Triagem Rigorosa",
-    description: "Analisamos o histórico, certificações e a saúde financeira de cada empresa parceira antes de entrar no Hub."
+    title: "Vistoria Completa",
+    description: "Vistoria cautelar rigorosa, checagem completa de histórico e documentação de todos os veículos cadastrados."
   },
   {
     icon: <ShieldCheck className="w-6 h-6" />,
-    title: "Garantia de Qualidade",
-    description: "A Hubly Pro audita os projetos para garantir que a instalação siga as normas técnicas e de segurança."
+    title: "Garantia e Procedência",
+    description: "Todos os veículos contam com garantia e procedência garantida pela BigBus, oferecendo segurança total na sua compra."
   },
   {
     icon: <Zap className="w-6 h-6" />,
-    title: "Melhor Negociação",
-    description: "Por sermos um Hub, negociamos em grande volume para garantir o melhor preço para você cliente final."
+    title: "Melhores Taxas",
+    description: "Parcerias fortes com os maiores bancos do país para oferecer a menor taxa de financiamento e aprovação de crédito ágil."
   }
 ];
 
@@ -42,12 +42,12 @@ interface TrustSectionProps {
 }
 
 export default function TrustSection({ data }: TrustSectionProps) {
-  const badge = data?.badge || "Qualidade Homologada";
-  const title_part1 = data?.title_part1 || "POR QUE CONTRATAR";
-  const title_part2 = data?.title_part2 || "VIA HUBLY PRO?";
-  const descriptionText = data?.description || "Diferente de contratar uma empresa direto no escuro, o Hubly Pro é a sua camada de proteção absoluta. Selecionamos apenas a elite do mercado.";
-  const certified_title = data?.certified_title || "Certificado de Homologação";
-  const certified_desc = data?.certified_desc || "Apenas 15% das empresas que aplicam são aprovadas em nosso rigoroso processo de auditoria.";
+  const badge = data?.badge || "Transparência & Segurança";
+  const title_part1 = data?.title_part1 || "POR QUE COMPRAR OU";
+  const title_part2 = data?.title_part2 || "VENDER COM A BIGBUS?";
+  const descriptionText = data?.description || "Oferecemos uma intermediação segura e simplificada. Cuidamos de toda a burocracia, vistoria e financiamento para você fazer o melhor negócio sem dores de cabeça.";
+  const certified_title = data?.certified_title || "Certificação de Procedência";
+  const certified_desc = data?.certified_desc || "Todos os nossos carros, vans, ônibus e motorhomes passam por uma avaliação mecânica e estética de mais de 150 itens.";
 
   const stepIcons = [
     <Search className="w-6 h-6" key="search" />,
@@ -77,7 +77,7 @@ export default function TrustSection({ data }: TrustSectionProps) {
             </div>
             
             <h2 className="text-4xl md:text-6xl font-montserrat font-black leading-[1.1] mb-8 uppercase tracking-tighter">
-              {title_part1} <br/>VIA <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-emerald to-emerald-400">{title_part2}</span>
+              {title_part1} <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-brand-yellow">{title_part2}</span>
             </h2>
             
             <p className="text-slate-400 text-base md:text-xl mb-10 leading-relaxed font-medium max-w-lg">
@@ -88,7 +88,7 @@ export default function TrustSection({ data }: TrustSectionProps) {
               whileHover={{ scale: 1.02 }}
               className="flex items-center gap-5 p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-md shadow-xl transition-colors hover:bg-white/10"
             >
-               <div className="w-14 h-14 bg-gradient-to-br from-brand-emerald to-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl shadow-emerald-500/20">
+               <div className="w-14 h-14 bg-gradient-to-br from-brand-emerald to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl shadow-blue-500/20">
                  <ShieldCheck className="w-8 h-8 text-white" />
                </div>
                <div>

@@ -4,8 +4,9 @@
 
 @theme inline {
   --color-brand-navy: #0F172A;
-  --color-brand-emerald: #10B981;
-  --color-brand-orange: #F97316;
+  --color-brand-emerald: #0B4F9C; /* Royal Blue */
+  --color-brand-orange: #C82A2F;  /* Red */
+  --color-brand-yellow: #F2C12E;  /* Yellow */
   --font-inter: var(--font-inter);
   --font-montserrat: var(--font-montserrat);
 

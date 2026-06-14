@@ -56,7 +56,7 @@ export default function ServicesCards({ data }: ServicesCardsProps) {
       >
         <div className="mb-2">
           <h2 className="text-sm font-black uppercase tracking-[0.3em] text-brand-navy dark:text-slate-400 opacity-60 mb-1">
-            Nossos Serviços
+            Categorias de Veículos
           </h2>
           <div className="w-12 h-1 bg-brand-emerald rounded-full" />
         </div>
@@ -85,7 +85,7 @@ export default function ServicesCards({ data }: ServicesCardsProps) {
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2 mb-2">
                    <div className="bg-brand-emerald/10 text-brand-emerald text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
-                     <ShieldCheck className="w-2.5 h-2.5" /> HOMOLOGADO
+                     <ShieldCheck className="w-2.5 h-2.5" /> VISTORIADO
                    </div>
                 </div>
                 
@@ -96,12 +96,10 @@ export default function ServicesCards({ data }: ServicesCardsProps) {
                 <Link href={service.href || '#'} className="inline-flex">
                   <button className="relative group/btn bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-[10px] font-black py-2.5 px-5 rounded-xl transition-all hover:pr-8 active:scale-95 uppercase tracking-widest flex items-center gap-2 overflow-hidden">
                     <span className="relative z-10">
-                      {service.id === 'limpeza_solar' ? 'Calcular Perda' : 
-                       service.id === 'instalacao_manutencao' ? 'Instalação' : 
-                       service.id === 'automacao_residencial' ? 'Automação' : 
-                       service.id === 'aquecimento_piso' ? 'Aquecimento' : 
-                       service.id === 'controle_acesso' ? 'Controle' : 
-                       service.id === 'carregamento_veicular' ? 'Carregador' : 'Climatização'}
+                      {service.id === 'vans' ? 'Simular Vans' : 
+                       service.id === 'onibus' ? 'Simular Ônibus' : 
+                       service.id === 'carros' ? 'Simular Carros' : 
+                       service.id === 'motorhomes' ? 'Simular Motorhome' : 'Negociar'}
                     </span>
                     <ChevronRight className="w-3 h-3 absolute right-3 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all" />
                   </button>

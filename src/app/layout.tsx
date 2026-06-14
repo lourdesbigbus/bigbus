@@ -16,8 +16,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Hubly Pro",
-  description: "Hub dos Profissionais - Maximize sua Economia e Conforto Solar",
+  title: "BigBus - Compra, Troca, Venda e Financiamento",
+  description: "Encontre as melhores opções de Vans, Ônibus, Carros e Motorhomes para compra, troca, venda ou financiamento. Simulação rápida e negociação 100% segura.",
 };
 
 export default async function RootLayout({
